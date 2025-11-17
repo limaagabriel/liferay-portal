@@ -36,18 +36,7 @@ long[] classNameIdValues = StringUtil.split(ParamUtil.getString(request, "classN
 			<aui:input cssClass="lfr-rules-configuration--textarea" name="rules" type="textarea" value='<%= ParamUtil.getString(request, "rules", rules) %>' wrap="off" wrapperCssClass="lfr-textarea-container" />
 
 			<%
-
-			// Right list
-
 			MethodKey methodKey = new MethodKey(ClassResolverUtil.resolve("com.liferay.portal.kernel.security.permission.ResourceActionsUtil", PortalClassLoaderUtil.getClassLoader()), "getModelResource", HttpServletRequest.class, String.class);
-
-			List<KeyValuePair> rightList = new ArrayList<KeyValuePair>();
-
-			for (long classNameId : classNameIdValues) {
-				String value = (String)PortalClassInvoker.invoke(methodKey, request, PortalUtil.getClassName(classNameId));
-
-				rightList.add(new KeyValuePair(String.valueOf(classNameId), value));
-			}
 
 			// Left list
 
@@ -59,6 +48,16 @@ long[] classNameIdValues = StringUtil.split(ParamUtil.getString(request, "classN
 
 					leftList.add(new KeyValuePair(String.valueOf(classNameId), value));
 				}
+			}
+
+			// Right list
+
+			List<KeyValuePair> rightList = new ArrayList<KeyValuePair>();
+
+			for (long classNameId : classNameIdValues) {
+				String value = (String)PortalClassInvoker.invoke(methodKey, request, PortalUtil.getClassName(classNameId));
+
+				rightList.add(new KeyValuePair(String.valueOf(classNameId), value));
 			}
 			%>
 
