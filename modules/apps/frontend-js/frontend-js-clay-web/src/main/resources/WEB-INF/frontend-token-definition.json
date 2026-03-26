@@ -607,6 +607,534 @@
 			],
 			"label": "color-system",
 			"name": "colorSystem"
+		},
+		{
+			"frontendTokenSets": [
+				{
+					"frontendTokens": [
+						{
+							"defaultValue": "0.25rem",
+							"editorType": "Length",
+							"label": "border-radius",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-border-radius"
+								}
+							],
+							"name": "alertBorderRadius",
+							"type": "String"
+						},
+						{
+							"defaultValue": "1rem",
+							"editorType": "Length",
+							"label": "margin-bottom",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-margin-bottom"
+								}
+							],
+							"name": "alertMarginBottom",
+							"type": "String"
+						},
+						{
+							"defaultValue": "1.25rem",
+							"editorType": "Length",
+							"label": "padding-horizontal",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-padding-x"
+								}
+							],
+							"name": "alertPaddingX",
+							"type": "String"
+						},
+						{
+							"defaultValue": "0.75rem",
+							"editorType": "Length",
+							"label": "padding-vertical",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-padding-y"
+								}
+							],
+							"name": "alertPaddingY",
+							"type": "String"
+						}
+					],
+					"label": "layout",
+					"name": "alertLayout"
+				},
+				{
+					"frontendTokens": [
+						{
+							"defaultValue": "#cce5ff",
+							"editorType": "ColorPicker",
+							"label": "background-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-primary-bg"
+								}
+							],
+							"name": "alertPrimaryBg",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#b8daff",
+							"editorType": "ColorPicker",
+							"label": "border-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-primary-border-color"
+								}
+							],
+							"name": "alertPrimaryBorderColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#004085",
+							"editorType": "ColorPicker",
+							"label": "color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-primary-color"
+								}
+							],
+							"name": "alertPrimaryColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#002752",
+							"editorType": "ColorPicker",
+							"label": "link-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-primary-link-color"
+								}
+							],
+							"name": "alertPrimaryLinkColor",
+							"type": "String"
+						}
+					],
+					"label": "primary",
+					"name": "alertPrimary"
+				},
+				{
+					"frontendTokens": [
+						{
+							"defaultValue": "#e2e3e5",
+							"editorType": "ColorPicker",
+							"label": "background-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-secondary-bg"
+								}
+							],
+							"name": "alertSecondaryBg",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#d6d8db",
+							"editorType": "ColorPicker",
+							"label": "border-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-secondary-border-color"
+								}
+							],
+							"name": "alertSecondaryBorderColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#383d41",
+							"editorType": "ColorPicker",
+							"label": "color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-secondary-color"
+								}
+							],
+							"name": "alertSecondaryColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#202326",
+							"editorType": "ColorPicker",
+							"label": "link-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-secondary-link-color"
+								}
+							],
+							"name": "alertSecondaryLinkColor",
+							"type": "String"
+						}
+					],
+					"label": "secondary",
+					"name": "alertSecondary"
+				},
+				{
+					"frontendTokens": [
+						{
+							"defaultValue": "#d4edda",
+							"editorType": "ColorPicker",
+							"label": "background-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-success-bg"
+								}
+							],
+							"name": "alertSuccessBg",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#c3e6cb",
+							"editorType": "ColorPicker",
+							"label": "border-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-success-border-color"
+								}
+							],
+							"name": "alertSuccessBorderColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#155724",
+							"editorType": "ColorPicker",
+							"label": "color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-success-color"
+								}
+							],
+							"name": "alertSuccessColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#0b2e13",
+							"editorType": "ColorPicker",
+							"label": "link-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-success-link-color"
+								}
+							],
+							"name": "alertSuccessLinkColor",
+							"type": "String"
+						}
+					],
+					"label": "success",
+					"name": "alertSuccess"
+				},
+				{
+					"frontendTokens": [
+						{
+							"defaultValue": "#d1ecf1",
+							"editorType": "ColorPicker",
+							"label": "background-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-info-bg"
+								}
+							],
+							"name": "alertInfoBg",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#bee5eb",
+							"editorType": "ColorPicker",
+							"label": "border-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-info-border-color"
+								}
+							],
+							"name": "alertInfoBorderColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#0c5460",
+							"editorType": "ColorPicker",
+							"label": "color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-info-color"
+								}
+							],
+							"name": "alertInfoColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#062c33",
+							"editorType": "ColorPicker",
+							"label": "link-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-info-link-color"
+								}
+							],
+							"name": "alertInfoLinkColor",
+							"type": "String"
+						}
+					],
+					"label": "info",
+					"name": "alertInfo"
+				},
+				{
+					"frontendTokens": [
+						{
+							"defaultValue": "#fff3cd",
+							"editorType": "ColorPicker",
+							"label": "background-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-warning-bg"
+								}
+							],
+							"name": "alertWarningBg",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#ffeeba",
+							"editorType": "ColorPicker",
+							"label": "border-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-warning-border-color"
+								}
+							],
+							"name": "alertWarningBorderColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#856404",
+							"editorType": "ColorPicker",
+							"label": "color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-warning-color"
+								}
+							],
+							"name": "alertWarningColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#533f03",
+							"editorType": "ColorPicker",
+							"label": "link-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-warning-link-color"
+								}
+							],
+							"name": "alertWarningLinkColor",
+							"type": "String"
+						}
+					],
+					"label": "warning",
+					"name": "alertWarning"
+				},
+				{
+					"frontendTokens": [
+						{
+							"defaultValue": "#f8d7da",
+							"editorType": "ColorPicker",
+							"label": "background-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-danger-bg"
+								}
+							],
+							"name": "alertDangerBg",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#f5c6cb",
+							"editorType": "ColorPicker",
+							"label": "border-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-danger-border-color"
+								}
+							],
+							"name": "alertDangerBorderColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#721c24",
+							"editorType": "ColorPicker",
+							"label": "color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-danger-color"
+								}
+							],
+							"name": "alertDangerColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#491217",
+							"editorType": "ColorPicker",
+							"label": "link-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-danger-link-color"
+								}
+							],
+							"name": "alertDangerLinkColor",
+							"type": "String"
+						}
+					],
+					"label": "danger",
+					"name": "alertDanger"
+				},
+				{
+					"frontendTokens": [
+						{
+							"defaultValue": "#fefefe",
+							"editorType": "ColorPicker",
+							"label": "background-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-light-bg"
+								}
+							],
+							"name": "alertLightBg",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#fdfdfe",
+							"editorType": "ColorPicker",
+							"label": "border-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-light-border-color"
+								}
+							],
+							"name": "alertLightBorderColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#818182",
+							"editorType": "ColorPicker",
+							"label": "color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-light-color"
+								}
+							],
+							"name": "alertLightColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#686868",
+							"editorType": "ColorPicker",
+							"label": "link-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-light-link-color"
+								}
+							],
+							"name": "alertLightLinkColor",
+							"type": "String"
+						}
+					],
+					"label": "light",
+					"name": "alertLight"
+				},
+				{
+					"frontendTokens": [
+						{
+							"defaultValue": "#d6d8d9",
+							"editorType": "ColorPicker",
+							"label": "background-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-dark-bg"
+								}
+							],
+							"name": "alertDarkBg",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#c6c8ca",
+							"editorType": "ColorPicker",
+							"label": "border-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-dark-border-color"
+								}
+							],
+							"name": "alertDarkBorderColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#1b1e21",
+							"editorType": "ColorPicker",
+							"label": "color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-dark-color"
+								}
+							],
+							"name": "alertDarkColor",
+							"type": "String"
+						},
+						{
+							"defaultValue": "#040505",
+							"editorType": "ColorPicker",
+							"label": "link-color",
+							"mappings": [
+								{
+									"type": "cssVariable",
+									"value": "clay-alert-dark-link-color"
+								}
+							],
+							"name": "alertDarkLinkColor",
+							"type": "String"
+						}
+					],
+					"label": "dark",
+					"name": "alertDark"
+				}
+			],
+			"label": "alerts",
+			"name": "alerts"
 		}
 	],
 	"name": "Clay"
