@@ -2,14 +2,31 @@
 /// @group alerts
 ////
 
+$alert-border-radius-default: $border-radius !default;
+$alert-margin-bottom-default: 1rem !default;
+$alert-padding-x-default: 1.25rem !default;
+$alert-padding-y-default: 0.75rem !default;
+
 $alert-border-style: solid !default;
 $alert-border-width: $border-width !default;
 
-$alert-border-radius: $border-radius !default;
+$alert-border-radius: var(
+	--clay-alert-border-radius,
+	#{$alert-border-radius-default}
+) !default;
 $alert-font-size: null !default;
-$alert-margin-bottom: 1rem !default;
-$alert-padding-x: 1.25rem !default;
-$alert-padding-y: 0.75rem !default;
+$alert-margin-bottom: var(
+	--clay-alert-margin-bottom,
+	#{$alert-margin-bottom-default}
+) !default;
+$alert-padding-x: var(
+	--clay-alert-padding-x,
+	#{$alert-padding-x-default}
+) !default;
+$alert-padding-y: var(
+	--clay-alert-padding-y,
+	#{$alert-padding-y-default}
+) !default;
 
 $alert-btn: () !default;
 $alert-btn: map-deep-merge(
@@ -655,19 +672,41 @@ $alert-indicator-start: map-deep-merge(
 
 // .alert-primary
 
-$alert-primary-bg: theme-color-level(primary, $alert-bg-level) !default;
-$alert-primary-border-color: theme-color-level(
-	primary,
-	$alert-border-level
+$alert-primary-bg-default: HSL(
+	from $primary-default h s calc(l + (100% - l) * 0.8)
 ) !default;
-$alert-primary-color: theme-color-level(primary, $alert-color-level) !default;
+$alert-primary-border-color-default: HSL(
+	from $primary-default h s calc(l + (100% - l) * 0.72)
+) !default;
+$alert-primary-color-default: HSL(
+	from $primary-default h s calc(l * 0.52)
+) !default;
+$alert-primary-link-color-default: HSL(
+	from $alert-primary-color-default h s calc(l - 10%)
+) !default;
+
+$alert-primary-bg: var(
+	--clay-alert-primary-bg,
+	#{$alert-primary-bg-default}
+) !default;
+$alert-primary-border-color: var(
+	--clay-alert-primary-border-color,
+	#{$alert-primary-border-color-default}
+) !default;
+$alert-primary-color: var(
+	--clay-alert-primary-color,
+	#{$alert-primary-color-default}
+) !default;
 
 $alert-primary-close-color: null !default;
 $alert-primary-close-hover-color: null !default;
 
 $alert-primary-lead-color: null !default;
 
-$alert-primary-link-color: clay-darken($alert-primary-color, 10%) !default;
+$alert-primary-link-color: var(
+	--clay-alert-primary-link-color,
+	#{$alert-primary-link-color-default}
+) !default;
 
 $alert-primary-link-hover-color: null !default;
 
@@ -729,14 +768,30 @@ $alert-primary: map-deep-merge(
 
 // .alert-secondary
 
-$alert-secondary-bg: theme-color-level(secondary, $alert-bg-level) !default;
-$alert-secondary-border-color: theme-color-level(
-	secondary,
-	$alert-border-level
+$alert-secondary-bg-default: HSL(
+	from $secondary-default h s calc(l + (100% - l) * 0.8)
 ) !default;
-$alert-secondary-color: theme-color-level(
-	secondary,
-	$alert-color-level
+$alert-secondary-border-color-default: HSL(
+	from $secondary-default h s calc(l + (100% - l) * 0.72)
+) !default;
+$alert-secondary-color-default: HSL(
+	from $secondary-default h s calc(l * 0.52)
+) !default;
+$alert-secondary-link-color-default: HSL(
+	from $alert-secondary-color-default h s calc(l - 10%)
+) !default;
+
+$alert-secondary-bg: var(
+	--clay-alert-secondary-bg,
+	#{$alert-secondary-bg-default}
+) !default;
+$alert-secondary-border-color: var(
+	--clay-alert-secondary-border-color,
+	#{$alert-secondary-border-color-default}
+) !default;
+$alert-secondary-color: var(
+	--clay-alert-secondary-color,
+	#{$alert-secondary-color-default}
 ) !default;
 
 $alert-secondary-close-color: null !default;
@@ -745,7 +800,10 @@ $alert-secondary-close-hover-color: null !default;
 
 $alert-secondary-lead-color: null !default;
 
-$alert-secondary-link-color: clay-darken($alert-secondary-color, 10%) !default;
+$alert-secondary-link-color: var(
+	--clay-alert-secondary-link-color,
+	#{$alert-secondary-link-color-default}
+) !default;
 
 $alert-secondary-link-hover-color: null !default;
 
@@ -803,12 +861,31 @@ $alert-secondary: map-deep-merge(
 
 // .alert-success
 
-$alert-success-bg: theme-color-level(success, $alert-bg-level) !default;
-$alert-success-border-color: theme-color-level(
-	success,
-	$alert-border-level
+$alert-success-bg-default: HSL(
+	from $success-default h s calc(l + (100% - l) * 0.8)
 ) !default;
-$alert-success-color: theme-color-level(success, $alert-color-level) !default;
+$alert-success-border-color-default: HSL(
+	from $success-default h s calc(l + (100% - l) * 0.72)
+) !default;
+$alert-success-color-default: HSL(
+	from $success-default h s calc(l * 0.52)
+) !default;
+$alert-success-link-color-default: HSL(
+	from $alert-success-color-default h s calc(l - 10%)
+) !default;
+
+$alert-success-bg: var(
+	--clay-alert-success-bg,
+	#{$alert-success-bg-default}
+) !default;
+$alert-success-border-color: var(
+	--clay-alert-success-border-color,
+	#{$alert-success-border-color-default}
+) !default;
+$alert-success-color: var(
+	--clay-alert-success-color,
+	#{$alert-success-color-default}
+) !default;
 
 $alert-success-close-color: null !default;
 
@@ -816,7 +893,10 @@ $alert-success-close-hover-color: null !default;
 
 $alert-success-lead-color: null !default;
 
-$alert-success-link-color: clay-darken($alert-success-color, 10%) !default;
+$alert-success-link-color: var(
+	--clay-alert-success-link-color,
+	#{$alert-success-link-color-default}
+) !default;
 
 $alert-success-link-hover-color: null !default;
 
@@ -874,9 +954,26 @@ $alert-success: map-deep-merge(
 
 // .alert-info
 
-$alert-info-bg: theme-color-level(info, $alert-bg-level) !default;
-$alert-info-border-color: theme-color-level(info, $alert-border-level) !default;
-$alert-info-color: theme-color-level(info, $alert-color-level) !default;
+$alert-info-bg-default: HSL(
+	from $info-default h s calc(l + (100% - l) * 0.8)
+) !default;
+$alert-info-border-color-default: HSL(
+	from $info-default h s calc(l + (100% - l) * 0.72)
+) !default;
+$alert-info-color-default: HSL(from $info-default h s calc(l * 0.52)) !default;
+$alert-info-link-color-default: HSL(
+	from $alert-info-color-default h s calc(l - 10%)
+) !default;
+
+$alert-info-bg: var(--clay-alert-info-bg, #{$alert-info-bg-default}) !default;
+$alert-info-border-color: var(
+	--clay-alert-info-border-color,
+	#{$alert-info-border-color-default}
+) !default;
+$alert-info-color: var(
+	--clay-alert-info-color,
+	#{$alert-info-color-default}
+) !default;
 
 $alert-info-close-color: null !default;
 
@@ -884,7 +981,10 @@ $alert-info-close-hover-color: null !default;
 
 $alert-info-lead-color: null !default;
 
-$alert-info-link-color: clay-darken($alert-info-color, 10%) !default;
+$alert-info-link-color: var(
+	--clay-alert-info-link-color,
+	#{$alert-info-link-color-default}
+) !default;
 
 $alert-info-link-hover-color: null !default;
 
@@ -942,12 +1042,31 @@ $alert-info: map-deep-merge(
 
 // .alert-warning
 
-$alert-warning-bg: theme-color-level(warning, $alert-bg-level) !default;
-$alert-warning-border-color: theme-color-level(
-	warning,
-	$alert-border-level
+$alert-warning-bg-default: HSL(
+	from $warning-default h s calc(l + (100% - l) * 0.8)
 ) !default;
-$alert-warning-color: theme-color-level(warning, $alert-color-level) !default;
+$alert-warning-border-color-default: HSL(
+	from $warning-default h s calc(l + (100% - l) * 0.72)
+) !default;
+$alert-warning-color-default: HSL(
+	from $warning-default h s calc(l * 0.52)
+) !default;
+$alert-warning-link-color-default: HSL(
+	from $alert-warning-color-default h s calc(l - 10%)
+) !default;
+
+$alert-warning-bg: var(
+	--clay-alert-warning-bg,
+	#{$alert-warning-bg-default}
+) !default;
+$alert-warning-border-color: var(
+	--clay-alert-warning-border-color,
+	#{$alert-warning-border-color-default}
+) !default;
+$alert-warning-color: var(
+	--clay-alert-warning-color,
+	#{$alert-warning-color-default}
+) !default;
 
 $alert-warning-close-color: null !default;
 
@@ -955,7 +1074,10 @@ $alert-warning-close-hover-color: null !default;
 
 $alert-warning-lead-color: null !default;
 
-$alert-warning-link-color: clay-darken($alert-warning-color, 10%) !default;
+$alert-warning-link-color: var(
+	--clay-alert-warning-link-color,
+	#{$alert-warning-link-color-default}
+) !default;
 
 $alert-warning-link-hover-color: null !default;
 
@@ -1013,12 +1135,31 @@ $alert-warning: map-deep-merge(
 
 // .alert-danger
 
-$alert-danger-bg: theme-color-level(danger, $alert-bg-level) !default;
-$alert-danger-border-color: theme-color-level(
-	danger,
-	$alert-border-level
+$alert-danger-bg-default: HSL(
+	from $danger-default h s calc(l + (100% - l) * 0.8)
 ) !default;
-$alert-danger-color: theme-color-level(danger, $alert-color-level) !default;
+$alert-danger-border-color-default: HSL(
+	from $danger-default h s calc(l + (100% - l) * 0.72)
+) !default;
+$alert-danger-color-default: HSL(
+	from $danger-default h s calc(l * 0.52)
+) !default;
+$alert-danger-link-color-default: HSL(
+	from $alert-danger-color-default h s calc(l - 10%)
+) !default;
+
+$alert-danger-bg: var(
+	--clay-alert-danger-bg,
+	#{$alert-danger-bg-default}
+) !default;
+$alert-danger-border-color: var(
+	--clay-alert-danger-border-color,
+	#{$alert-danger-border-color-default}
+) !default;
+$alert-danger-color: var(
+	--clay-alert-danger-color,
+	#{$alert-danger-color-default}
+) !default;
 
 $alert-danger-close-color: null !default;
 
@@ -1026,7 +1167,10 @@ $alert-danger-close-hover-color: null !default;
 
 $alert-danger-lead-color: null !default;
 
-$alert-danger-link-color: clay-darken($alert-danger-color, 10%) !default;
+$alert-danger-link-color: var(
+	--clay-alert-danger-link-color,
+	#{$alert-danger-link-color-default}
+) !default;
 
 $alert-danger-link-hover-color: null !default;
 
@@ -1084,12 +1228,31 @@ $alert-danger: map-deep-merge(
 
 // .alert-light
 
-$alert-light-bg: theme-color-level(light, $alert-bg-level) !default;
-$alert-light-border-color: theme-color-level(
-	light,
-	$alert-border-level
+$alert-light-bg-default: HSL(
+	from $light-default h s calc(l + (100% - l) * 0.8)
 ) !default;
-$alert-light-color: theme-color-level(light, $alert-color-level) !default;
+$alert-light-border-color-default: HSL(
+	from $light-default h s calc(l + (100% - l) * 0.72)
+) !default;
+$alert-light-color-default: HSL(
+	from $light-default h s calc(l * 0.52)
+) !default;
+$alert-light-link-color-default: HSL(
+	from $alert-light-color-default h s calc(l - 10%)
+) !default;
+
+$alert-light-bg: var(
+	--clay-alert-light-bg,
+	#{$alert-light-bg-default}
+) !default;
+$alert-light-border-color: var(
+	--clay-alert-light-border-color,
+	#{$alert-light-border-color-default}
+) !default;
+$alert-light-color: var(
+	--clay-alert-light-color,
+	#{$alert-light-color-default}
+) !default;
 
 $alert-light-close-color: null !default;
 
@@ -1097,7 +1260,10 @@ $alert-light-close-hover-color: null !default;
 
 $alert-light-lead-color: null !default;
 
-$alert-light-link-color: clay-darken($alert-light-color, 10%) !default;
+$alert-light-link-color: var(
+	--clay-alert-light-link-color,
+	#{$alert-light-link-color-default}
+) !default;
 
 $alert-light-link-hover-color: null !default;
 
@@ -1155,9 +1321,26 @@ $alert-light: map-deep-merge(
 
 // .alert-dark
 
-$alert-dark-bg: theme-color-level(dark, $alert-bg-level) !default;
-$alert-dark-border-color: theme-color-level(dark, $alert-border-level) !default;
-$alert-dark-color: theme-color-level(dark, $alert-color-level) !default;
+$alert-dark-bg-default: HSL(
+	from $dark-default h s calc(l + (100% - l) * 0.8)
+) !default;
+$alert-dark-border-color-default: HSL(
+	from $dark-default h s calc(l + (100% - l) * 0.72)
+) !default;
+$alert-dark-color-default: HSL(from $dark-default h s calc(l * 0.52)) !default;
+$alert-dark-link-color-default: HSL(
+	from $alert-dark-color-default h s calc(l - 10%)
+) !default;
+
+$alert-dark-bg: var(--clay-alert-dark-bg, #{$alert-dark-bg-default}) !default;
+$alert-dark-border-color: var(
+	--clay-alert-dark-border-color,
+	#{$alert-dark-border-color-default}
+) !default;
+$alert-dark-color: var(
+	--clay-alert-dark-color,
+	#{$alert-dark-color-default}
+) !default;
 
 $alert-dark-close-color: null !default;
 
@@ -1165,7 +1348,10 @@ $alert-dark-close-hover-color: null !default;
 
 $alert-dark-lead-color: null !default;
 
-$alert-dark-link-color: clay-darken($alert-dark-color, 10%) !default;
+$alert-dark-link-color: var(
+	--clay-alert-dark-link-color,
+	#{$alert-dark-link-color-default}
+) !default;
 
 $alert-dark-link-hover-color: null !default;
 

@@ -1,6 +1,17 @@
+$alert-border-radius-default: 0.25rem !default;
+$alert-margin-bottom-default: 1rem !default;
+$alert-padding-x-default: 1rem !default;
+$alert-padding-y-default: 0.9375rem !default;
+
 $alert-font-size: 0.875rem !default; // 14px
-$alert-padding-x: 1rem !default;
-$alert-padding-y: 0.9375rem !default;
+$alert-padding-x: var(
+	--clay-alert-padding-x,
+	#{$alert-padding-x-default}
+) !default;
+$alert-padding-y: var(
+	--clay-alert-padding-y,
+	#{$alert-padding-y-default}
+) !default;
 
 // For top only border use: 2px 0 0 0
 $alert-border-width: 0.0625rem !default;
@@ -229,16 +240,33 @@ $alert-indicator-start: map-deep-merge(
 
 // .alert-primary
 
-$alert-primary-bg: $primary-l3 !default;
-$alert-primary-border-color: $primary-l1 !default;
-$alert-primary-color: $primary !default;
+$alert-primary-bg-default: $primary-l3 !default;
+$alert-primary-border-color-default: $primary-l1 !default;
+$alert-primary-color-default: $primary !default;
+$alert-primary-link-color-default: $link-color !default;
+
+$alert-primary-bg: var(
+	--clay-alert-primary-bg,
+	#{$alert-primary-bg-default}
+) !default;
+$alert-primary-border-color: var(
+	--clay-alert-primary-border-color,
+	#{$alert-primary-border-color-default}
+) !default;
+$alert-primary-color: var(
+	--clay-alert-primary-color,
+	#{$alert-primary-color-default}
+) !default;
 
 $alert-primary-close-color: $alert-primary-color !default;
 $alert-primary-close-hover-color: $alert-primary-color !default;
 
 $alert-primary-lead-color: $alert-primary-color !default;
 
-$alert-primary-link-color: $link-color !default;
+$alert-primary-link-color: var(
+	--clay-alert-primary-link-color,
+	#{$alert-primary-link-color-default}
+) !default;
 
 $alert-primary-btn: () !default;
 $alert-primary-btn: map-deep-merge(
@@ -282,16 +310,33 @@ $alert-primary: map-deep-merge(
 
 // .alert-secondary
 
-$alert-secondary-bg: $light-l1 !default;
-$alert-secondary-border-color: $light-d2 !default;
-$alert-secondary-color: $secondary !default;
+$alert-secondary-bg-default: $light-l1 !default;
+$alert-secondary-border-color-default: $light-d2 !default;
+$alert-secondary-color-default: $secondary !default;
+$alert-secondary-link-color-default: $link-color !default;
+
+$alert-secondary-bg: var(
+	--clay-alert-secondary-bg,
+	#{$alert-secondary-bg-default}
+) !default;
+$alert-secondary-border-color: var(
+	--clay-alert-secondary-border-color,
+	#{$alert-secondary-border-color-default}
+) !default;
+$alert-secondary-color: var(
+	--clay-alert-secondary-color,
+	#{$alert-secondary-color-default}
+) !default;
 
 $alert-secondary-close-color: $alert-secondary-color !default;
 $alert-secondary-close-hover-color: $alert-secondary-color !default;
 
 $alert-secondary-lead-color: $alert-secondary-color !default;
 
-$alert-secondary-link-color: $link-color !default;
+$alert-secondary-link-color: var(
+	--clay-alert-secondary-link-color,
+	#{$alert-secondary-link-color-default}
+) !default;
 
 $alert-secondary-btn: () !default;
 $alert-secondary-btn: map-deep-merge(
@@ -335,16 +380,33 @@ $alert-secondary: map-deep-merge(
 
 // .alert-success
 
-$alert-success-bg: $success-l2 !default;
-$alert-success-border-color: $success-l1 !default;
-$alert-success-color: $success !default;
+$alert-success-bg-default: $success-l2 !default;
+$alert-success-border-color-default: $success-l1 !default;
+$alert-success-color-default: $success !default;
+$alert-success-link-color-default: $link-color !default;
+
+$alert-success-bg: var(
+	--clay-alert-success-bg,
+	#{$alert-success-bg-default}
+) !default;
+$alert-success-border-color: var(
+	--clay-alert-success-border-color,
+	#{$alert-success-border-color-default}
+) !default;
+$alert-success-color: var(
+	--clay-alert-success-color,
+	#{$alert-success-color-default}
+) !default;
 
 $alert-success-close-color: $alert-success-color !default;
 $alert-success-close-hover-color: $alert-success-color !default;
 
 $alert-success-lead-color: $alert-success-color !default;
 
-$alert-success-link-color: $link-color !default;
+$alert-success-link-color: var(
+	--clay-alert-success-link-color,
+	#{$alert-success-link-color-default}
+) !default;
 
 $alert-success-btn: () !default;
 $alert-success-btn: map-deep-merge(
@@ -388,16 +450,30 @@ $alert-success: map-deep-merge(
 
 // .alert-info
 
-$alert-info-bg: $info-l2 !default;
-$alert-info-border-color: $info-l1 !default;
-$alert-info-color: $info !default;
+$alert-info-bg-default: $info-l2 !default;
+$alert-info-border-color-default: $info-l1 !default;
+$alert-info-color-default: $info !default;
+$alert-info-link-color-default: $link-color !default;
+
+$alert-info-bg: var(--clay-alert-info-bg, #{$alert-info-bg-default}) !default;
+$alert-info-border-color: var(
+	--clay-alert-info-border-color,
+	#{$alert-info-border-color-default}
+) !default;
+$alert-info-color: var(
+	--clay-alert-info-color,
+	#{$alert-info-color-default}
+) !default;
 
 $alert-info-close-color: $alert-info-color !default;
 $alert-info-close-hover-color: $alert-info-color !default;
 
 $alert-info-lead-color: $alert-info-color !default;
 
-$alert-info-link-color: $link-color !default;
+$alert-info-link-color: var(
+	--clay-alert-info-link-color,
+	#{$alert-info-link-color-default}
+) !default;
 
 $alert-info-btn: () !default;
 $alert-info-btn: map-deep-merge(
@@ -441,16 +517,33 @@ $alert-info: map-deep-merge(
 
 // .alert-warning
 
-$alert-warning-bg: $warning-l2 !default;
-$alert-warning-border-color: $warning-l1 !default;
-$alert-warning-color: $warning !default;
+$alert-warning-bg-default: $warning-l2 !default;
+$alert-warning-border-color-default: $warning-l1 !default;
+$alert-warning-color-default: $warning !default;
+$alert-warning-link-color-default: $link-color !default;
+
+$alert-warning-bg: var(
+	--clay-alert-warning-bg,
+	#{$alert-warning-bg-default}
+) !default;
+$alert-warning-border-color: var(
+	--clay-alert-warning-border-color,
+	#{$alert-warning-border-color-default}
+) !default;
+$alert-warning-color: var(
+	--clay-alert-warning-color,
+	#{$alert-warning-color-default}
+) !default;
 
 $alert-warning-close-color: $alert-warning-color !default;
 $alert-warning-close-hover-color: $alert-warning-color !default;
 
 $alert-warning-lead-color: $alert-warning-color !default;
 
-$alert-warning-link-color: $link-color !default;
+$alert-warning-link-color: var(
+	--clay-alert-warning-link-color,
+	#{$alert-warning-link-color-default}
+) !default;
 
 $alert-warning-btn: () !default;
 $alert-warning-btn: map-deep-merge(
@@ -494,16 +587,33 @@ $alert-warning: map-deep-merge(
 
 // .alert-danger
 
-$alert-danger-bg: $danger-l2 !default;
-$alert-danger-border-color: $danger-l1 !default;
-$alert-danger-color: $danger !default;
+$alert-danger-bg-default: $danger-l2 !default;
+$alert-danger-border-color-default: $danger-l1 !default;
+$alert-danger-color-default: $danger !default;
+$alert-danger-link-color-default: $link-color !default;
+
+$alert-danger-bg: var(
+	--clay-alert-danger-bg,
+	#{$alert-danger-bg-default}
+) !default;
+$alert-danger-border-color: var(
+	--clay-alert-danger-border-color,
+	#{$alert-danger-border-color-default}
+) !default;
+$alert-danger-color: var(
+	--clay-alert-danger-color,
+	#{$alert-danger-color-default}
+) !default;
 
 $alert-danger-close-color: $alert-danger-color !default;
 $alert-danger-close-hover-color: $alert-danger-color !default;
 
 $alert-danger-lead-color: $alert-danger-color !default;
 
-$alert-danger-link-color: $link-color !default;
+$alert-danger-link-color: var(
+	--clay-alert-danger-link-color,
+	#{$alert-danger-link-color-default}
+) !default;
 
 $alert-danger-btn: () !default;
 $alert-danger-btn: map-deep-merge(
@@ -547,16 +657,33 @@ $alert-danger: map-deep-merge(
 
 // .alert-light
 
-$alert-light-bg: $light-l2 !default;
-$alert-light-border-color: $light-l1 !default;
-$alert-light-color: $dark !default;
+$alert-light-bg-default: $light-l2 !default;
+$alert-light-border-color-default: $light-l1 !default;
+$alert-light-color-default: $dark !default;
+$alert-light-link-color-default: $link-color !default;
+
+$alert-light-bg: var(
+	--clay-alert-light-bg,
+	#{$alert-light-bg-default}
+) !default;
+$alert-light-border-color: var(
+	--clay-alert-light-border-color,
+	#{$alert-light-border-color-default}
+) !default;
+$alert-light-color: var(
+	--clay-alert-light-color,
+	#{$alert-light-color-default}
+) !default;
 
 $alert-light-close-color: $alert-light-color !default;
 $alert-light-close-hover-color: $alert-light-color !default;
 
 $alert-light-lead-color: $alert-light-color !default;
 
-$alert-light-link-color: $link-color !default;
+$alert-light-link-color: var(
+	--clay-alert-light-link-color,
+	#{$alert-light-link-color-default}
+) !default;
 
 $alert-light-btn: () !default;
 $alert-light-btn: map-deep-merge(
@@ -608,16 +735,30 @@ $alert-light: map-deep-merge(
 
 // .alert-dark
 
-$alert-dark-bg: $dark-l2 !default;
-$alert-dark-border-color: $dark-l1 !default;
-$alert-dark-color: $light !default;
+$alert-dark-bg-default: $dark-l2 !default;
+$alert-dark-border-color-default: $dark-l1 !default;
+$alert-dark-color-default: $light !default;
+$alert-dark-link-color-default: $alert-dark-color-default !default;
+
+$alert-dark-bg: var(--clay-alert-dark-bg, #{$alert-dark-bg-default}) !default;
+$alert-dark-border-color: var(
+	--clay-alert-dark-border-color,
+	#{$alert-dark-border-color-default}
+) !default;
+$alert-dark-color: var(
+	--clay-alert-dark-color,
+	#{$alert-dark-color-default}
+) !default;
 
 $alert-dark-close-color: $alert-dark-color !default;
 $alert-dark-close-hover-color: $alert-dark-color !default;
 
 $alert-dark-lead-color: $alert-dark-color !default;
 
-$alert-dark-link-color: $alert-dark-color !default;
+$alert-dark-link-color: var(
+	--clay-alert-dark-link-color,
+	#{$alert-dark-link-color-default}
+) !default;
 
 $alert-dark-btn: () !default;
 $alert-dark-btn: map-deep-merge(
