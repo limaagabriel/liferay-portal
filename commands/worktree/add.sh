@@ -80,8 +80,8 @@ else
     fi
 fi
 
-lp_step 2 2 "Creating app.server.me.properties"
-cat > "$WORKTREE_DIR/app.server.me.properties" <<EOF
+lp_step 2 2 "Creating app.server.${LIFERAY_USER}.properties"
+cat > "$WORKTREE_DIR/app.server.${LIFERAY_USER}.properties" <<EOF
 app.server.parent.dir=$BUNDLE_DIR
 EOF
 

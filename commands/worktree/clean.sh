@@ -53,6 +53,6 @@ lp_step 1 2 "Running ant clean"
 lp_run ant clean
 
 lp_step 2 2 "Cleaning git artifacts"
-lp_run git clean -fdx -e .idea -e "*.iml" -e app.server.me.properties -e build.me.properties
+lp_run git clean -fdx -e .idea -e "*.iml" -e app.server.${LIFERAY_USER}.properties -e build.${LIFERAY_USER}.properties
 
 lp_success "Worktree cleaned successfully."
