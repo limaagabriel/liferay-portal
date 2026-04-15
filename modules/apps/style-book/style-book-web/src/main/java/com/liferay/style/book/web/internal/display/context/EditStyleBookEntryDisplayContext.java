@@ -342,6 +342,8 @@ public class EditStyleBookEntryDisplayContext {
 					"name",
 					frontendTokenDefinition.getThemeName(
 						_themeDisplay.getLocale())
+				).put(
+					"priority", frontendTokenDefinition.getPriority()
 				);
 
 				return jsonObject;

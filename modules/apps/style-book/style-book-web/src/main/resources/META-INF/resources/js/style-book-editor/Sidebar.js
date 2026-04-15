@@ -12,6 +12,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import FrontendTokenSet from './FrontendTokenSet';
 import {config} from './config';
 import {useFrontendTokensValues} from './contexts/StyleBookEditorContext';
+import {getSortedFrontendTokenValues} from './utils/getSortedFrontendTokenValues';
 
 export default React.memo(function Sidebar() {
 	const sidebarRef = useRef();
@@ -132,14 +133,18 @@ function UpdateStyle({sidebarRef}) {
 		if (sidebarRef.current) {
 			sidebarRef.current.removeAttribute('style');
 
-			Object.values(frontendTokensValues).forEach(
-				({cssVariableMapping, value}) => {
-					sidebarRef.current.style.setProperty(
-						`--${cssVariableMapping}`,
-						value
-					);
-				}
-			);
+			for (const {
+				cssVariableMapping,
+				value,
+			} of getSortedFrontendTokenValues(
+				frontendTokensValues,
+				config.frontendTokenDefinitions
+			)) {
+				sidebarRef.current.style.setProperty(
+					`--${cssVariableMapping}`,
+					value
+				);
+			}
 		}
 	}, [frontendTokensValues, sidebarRef]);
 
