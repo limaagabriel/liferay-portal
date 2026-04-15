@@ -58,8 +58,8 @@ const renderComponent = ({expandedKeys = ['content', 'workflow']} = {}) =>
 			expandedKeys={expandedKeys}
 			expandedKeysSessionKey="expandedKeysSessionKey"
 			items={ITEMS}
-			label="Applications"
-			portletId="assets"
+			label="label"
+			selectedPortletId="assets"
 			siteAdministrationItemSelectedEventName="siteAdministrationItemSelectedEventName"
 			siteAdministrationItemSelectorUrl="siteAdministrationItemSelectorUrl"
 			visible

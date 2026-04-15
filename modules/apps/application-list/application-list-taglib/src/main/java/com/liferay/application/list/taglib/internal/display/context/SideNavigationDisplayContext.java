@@ -79,7 +79,7 @@ public class SideNavigationDisplayContext {
 		).put(
 			"label", _panelCategory.getLabel(_themeDisplay.getLocale())
 		).put(
-			"portletId", _portletId
+			"selectedPortletId", _portletId
 		).put(
 			"siteAdministrationItemSelectedEventName", itemSelectedEventName
 		).put(

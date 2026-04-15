@@ -926,20 +926,36 @@ public class PortletContainerImpl implements PortletContainer {
 				httpServletRequest.setAttribute(
 					JavaConstants.JAKARTA_PORTLET_CONFIG, portletConfig);
 			}
+			else {
+				httpServletRequest.removeAttribute(
+					JavaConstants.JAKARTA_PORTLET_CONFIG);
+			}
 
 			if (portletRequest != null) {
 				httpServletRequest.setAttribute(
 					JavaConstants.JAKARTA_PORTLET_REQUEST, portletRequest);
+			}
+			else {
+				httpServletRequest.removeAttribute(
+					JavaConstants.JAKARTA_PORTLET_REQUEST);
 			}
 
 			if (portletResponse != null) {
 				httpServletRequest.setAttribute(
 					JavaConstants.JAKARTA_PORTLET_RESPONSE, portletResponse);
 			}
+			else {
+				httpServletRequest.removeAttribute(
+					JavaConstants.JAKARTA_PORTLET_RESPONSE);
+			}
 
 			if (lifecycle != null) {
 				httpServletRequest.setAttribute(
 					PortletRequest.LIFECYCLE_PHASE, lifecycle);
+			}
+			else {
+				httpServletRequest.removeAttribute(
+					PortletRequest.LIFECYCLE_PHASE);
 			}
 
 			httpServletRequest.removeAttribute(WebKeys.RENDER_PORTLET);
