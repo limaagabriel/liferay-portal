@@ -24,7 +24,7 @@ interface Props {
 	expandedKeysSessionKey: string;
 	items: Array<SideNavigationItem>;
 	label: string;
-	selectedPortletId: string;
+	portletId: string;
 	siteAdministrationItemSelectedEventName: string;
 	siteAdministrationItemSelectorUrl: string;
 	visible: boolean;
@@ -38,7 +38,7 @@ function SideNavigation({
 	expandedKeysSessionKey,
 	items: externalItems,
 	label,
-	selectedPortletId,
+	portletId,
 	siteAdministrationItemSelectedEventName,
 	siteAdministrationItemSelectorUrl,
 	visible: initialVisible,
@@ -176,7 +176,7 @@ function SideNavigation({
 
 				{numberOfResults ? (
 					<ClayVerticalNav
-						active={selectedPortletId}
+						active={portletId}
 						defaultExpandedKeys={initialExpandedKeys}
 						displayType="primary"
 						expandedKeys={expandedKeys ?? userExpandedKeys}
