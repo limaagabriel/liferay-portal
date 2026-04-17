@@ -22,7 +22,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 
 import AccessibilitySetting from './AccessibilitySetting';
-import {getSettingValue, toggleClassName} from './util';
+import {getSettingValue, setupTabReturnFocusRing, toggleClassName} from './util';
 
 type KEYS = keyof typeof CONSTANTS;
 
@@ -58,6 +58,10 @@ const AccessibilityMenu = (props: Props) => {
 		useState(checkConsent(COOKIE_TYPES.FUNCTIONAL));
 
 	const {observer, onOpenChange, open} = useModal();
+
+	useEffect(() => {
+		setupTabReturnFocusRing();
+	}, []);
 
 	useEffect(() => {
 		setSettings(

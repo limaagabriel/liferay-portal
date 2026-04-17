@@ -50,6 +50,17 @@ $focus-ring-animation-to-box-shadow:
 		animation: $focus-ring-animation;
 	}
 
+	&.c-tab-returning {
+		:focus-visible,
+		.focus {
+			animation-name: none;
+		}
+
+		.custom-control-input:focus-visible ~ .custom-control-label::after {
+			animation-name: none;
+		}
+	}
+
 	@at-root {
 		.c-prefers-reduced-motion & {
 			:focus-visible,

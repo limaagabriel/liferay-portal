@@ -37,3 +37,29 @@ export function isNullOrUndefined(value: boolean | string | undefined | null) {
 export function toggleClassName(className: string, value: boolean) {
 	window.document.querySelector('body')!.classList.toggle(className, value);
 }
+
+let tabReturnFocusRingSetup = false;
+
+export function setupTabReturnFocusRing() {
+	if (tabReturnFocusRingSetup) {
+		return;
+	}
+
+	tabReturnFocusRingSetup = true;
+
+	document.addEventListener('visibilitychange', () => {
+		const body = document.body;
+
+		if (
+			!document.hidden &&
+			body.classList.contains('c-prefers-focus-ring')
+		) {
+			body.classList.add('c-tab-returning');
+
+			// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+			void body.offsetWidth;
+
+			body.classList.remove('c-tab-returning');
+		}
+	});
+}
