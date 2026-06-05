@@ -103,6 +103,7 @@ yarn run lint
     - internal `@clayui/*` dependency updates
     - package build/type generation (when applicable)
     - npm publish flow
+- The script accepts `--layout=liferay-portal` (default; operates on the local portal Clay tree under `clay/`) or `--layout=clay --path-to-clay=<path>` (operates on an external Clay tree whose root contains `packages/`, `CHANGELOG.md`, and a root `package.json`). The commit link base in the unified changelog is auto-derived from `git remote get-url origin` of the target root.
 - The unified changelog boundary is derived from the most recent commit whose subject matches a recognized release phrasing. Recognized phrasings are:
     - `Bump Clay versions to X.Y.Z` (also matches `Bump Clay version to X.Y.Z`)
     - `Publish vX.Y.Z`
@@ -139,6 +140,11 @@ NPM_TAG=next node clay/publish-clay-packages.mjs --target-version=3.160.0
 
 # Optional: skip version bump (advanced)
 SKIP_VERSION_BUMP=true node clay/publish-clay-packages.mjs --target-version=3.160.0
+
+# Cross-repo publish from a checked-out liferay/clay working copy
+node clay/publish-clay-packages.mjs --target-version=3.160.0 --layout=clay --path-to-clay=/path/to/clay --preview-changes
+node clay/publish-clay-packages.mjs --target-version=3.160.0 --layout=clay --path-to-clay=/path/to/clay --dry-run
+node clay/publish-clay-packages.mjs --target-version=3.160.0 --layout=clay --path-to-clay=/path/to/clay
 ```
 
 * Review `package.json` version updates in `modules/apps/frontend-js/frontend-js-clay-web`
@@ -152,7 +158,7 @@ SKIP_VERSION_BUMP=true node clay/publish-clay-packages.mjs --target-version=3.16
 Release notes:
 
 - npm auth is required (`npm whoami` must succeed).
-- Tests run before publish steps (except preview mode).
+- Tests run before publish steps (except preview mode). In `--layout=clay`, the script temporarily patches `scripts/jest-clay-lerna-resolver.js` to use `pkg['main']` (the upstream resolver references `pkg['ts:main']`, a field no package sets; the portal resolver is correct). The original is restored in a `finally` block.
 - Version lockstep applies across publishable Clay packages.
 
 ## Pull Request Preview Integrations
