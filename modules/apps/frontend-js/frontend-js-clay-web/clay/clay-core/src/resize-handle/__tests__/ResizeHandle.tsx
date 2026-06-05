@@ -184,6 +184,7 @@ describe('ResizeHandle', () => {
 		test('renders the centered indicator with direction "all" when enabled', () => {
 			render(
 				<ResizeHandle
+					aria-controls="resizable-region"
 					data-testid="resizer"
 					displayKeyboardArrowsIndicator
 					maxWidth={600}
