@@ -8,10 +8,19 @@
 /**
  * Usage:
  *   node clay/publish-clay-packages.mjs --target-version=<version>
+ *        [--layout=<liferay-portal|clay>]
+ *        [--path-to-clay=<path>]
+ *
  *
  * Optional flags:
  *   --dry-run          Preview package changes only; skips build and publish
  *   --preview-changes  Preview package.json version/dependency updates only
+ *   --layout=clay — script operates on a different Clay tree. Requires
+ *     --path-to-clay=<path> pointing at the Clay repo root (where packages/,
+ *     CHANGELOG.md, and the root package.json live).
+ *   --layout=liferay-portal (default) — script operates on the local
+ *     liferay-portal Clay tree (sibling packages under clay/, unified
+ *     changelog at clay/CHANGELOG.md).
  *
  * Optional env vars:
  *   NPM_TAG=latest|next        Publish dist-tag (defaults to latest)
@@ -23,6 +32,9 @@
  *   - Requires existing npm auth (`npm whoami` must succeed)
  *   - Applies publish-only package.json entry fields temporarily per package
  *     and restores local files after each publish
+ *   - The commit link base in the unified changelog is auto-derived from
+ *     `git -C <root> remote get-url origin` (with the liferay-portal URL
+ *     as fallback)
  */
 
 import execa from 'execa';
@@ -33,24 +45,33 @@ import {fileURLToPath} from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const CLAY_DIR = __dirname;
-const ROOT_DIR = path.dirname(CLAY_DIR);
-const UNIFIED_CHANGELOG_PATH = path.join(CLAY_DIR, 'CHANGELOG.md');
-const COMMIT_LINK_BASE = 'https://github.com/liferay/liferay-portal/commit';
-
 const NPM_TAG = process.env.NPM_TAG || 'latest';
 const SKIP_VERSION_BUMP = process.env.SKIP_VERSION_BUMP === 'true';
 
 let DRY_RUN = process.env.DRY_RUN === 'true';
 let PREVIEW_CHANGES = process.env.PREVIEW_CHANGES === 'true';
 let TARGET_VERSION = '';
+let LAYOUT = 'liferay-portal';
+let PATH_TO_CLAY = '';
 
 const usage =
-	'Usage: node clay/publish-clay-packages.mjs --target-version=<version> [--dry-run] [--preview-changes]';
+	"Usage: node clay/publish-clay-packages.mjs --target-version=<version> " +
+	'[--layout=<liferay-portal|clay>] [--path-to-clay=<path>] ' +
+	'[--dry-run] [--preview-changes]';
 
 for (const arg of process.argv.slice(2)) {
 	if (arg.startsWith('--target-version=')) {
 		TARGET_VERSION = arg.slice('--target-version='.length).trim();
+		continue;
+	}
+
+	if (arg.startsWith('--layout=')) {
+		LAYOUT = arg.slice('--layout='.length).trim();
+		continue;
+	}
+
+	if (arg.startsWith('--path-to-clay=')) {
+		PATH_TO_CLAY = arg.slice('--path-to-clay='.length).trim();
 		continue;
 	}
 
@@ -73,6 +94,70 @@ if (!TARGET_VERSION) {
 	console.error(usage);
 	process.exit(1);
 }
+
+if (LAYOUT !== 'liferay-portal' && LAYOUT !== 'clay') {
+	console.error(
+		`ERROR: --layout must be 'liferay-portal' or 'clay' (got '${LAYOUT}')`
+	);
+	console.error(usage);
+	process.exit(1);
+}
+
+if (LAYOUT === 'clay' && !PATH_TO_CLAY) {
+	console.error('ERROR: --layout=clay requires --path-to-clay=<path>');
+	console.error(usage);
+	process.exit(1);
+}
+
+if (PATH_TO_CLAY && LAYOUT !== 'clay') {
+	console.error('ERROR: --path-to-clay is only valid with --layout=clay');
+	console.error(usage);
+	process.exit(1);
+}
+
+const ROOT_DIR =
+	LAYOUT === 'clay' ? path.resolve(PATH_TO_CLAY) : path.dirname(__dirname);
+const CLAY_DIR =
+	LAYOUT === 'clay'
+		? path.join(ROOT_DIR, 'packages')
+		: path.join(ROOT_DIR, 'clay');
+const UNIFIED_CHANGELOG_PATH =
+	LAYOUT === 'clay'
+		? path.join(ROOT_DIR, 'CHANGELOG.md')
+		: path.join(CLAY_DIR, 'CHANGELOG.md');
+
+function getCommitLinkBase(repoDir) {
+	try {
+		const result = execa.sync('git', [
+			'-C',
+			repoDir,
+			'remote',
+			'get-url',
+			'origin',
+		]);
+		const url = (result.stdout || '').trim();
+
+		const sshMatch = url.match(
+			/^git@github\.com:([^/]+\/[^/]+?)(?:\.git)?$/
+		);
+		if (sshMatch) {
+			return `https://github.com/${sshMatch[1]}/commit`;
+		}
+
+		const httpsMatch = url.match(
+			/^https?:\/\/github\.com\/([^/]+\/[^/]+?)(?:\.git)?$/
+		);
+		if (httpsMatch) {
+			return `https://github.com/${httpsMatch[1]}/commit`;
+		}
+	}
+	catch {
+	}
+
+	return 'https://github.com/liferay/liferay-portal/commit';
+}
+
+const COMMIT_LINK_BASE = getCommitLinkBase(ROOT_DIR);
 
 if (!fs.existsSync(CLAY_DIR) || !fs.statSync(CLAY_DIR).isDirectory()) {
 	console.error(`ERROR: Expected clay directory at ${CLAY_DIR}`);
@@ -462,13 +547,55 @@ async function ensureNpmAuth() {
 	console.log(`Authenticated to npm as ${username || 'unknown user'}`);
 }
 
+async function runTestsWithClayResolverPatch(runTests) {
+	const resolverPath = path.join(
+		ROOT_DIR,
+		'scripts/jest-clay-lerna-resolver.js'
+	);
+
+	let resolverOriginal = null;
+
+	if (LAYOUT === 'clay') {
+		const current = await fs.promises.readFile(resolverPath, 'utf8');
+
+		if (current.includes("pkg['ts:main']")) {
+			resolverOriginal = current;
+
+			await fs.promises.writeFile(
+				resolverPath,
+				current.replace("pkg['ts:main']", "pkg['main']")
+			);
+			console.log(
+				'Patched scripts/jest-clay-lerna-resolver.js: ' +
+					"pkg['ts:main'] -> pkg['main'] (upstream resolver " +
+					'references a field no package sets; portal resolver ' +
+					'is correct). Will restore after tests.'
+			);
+		}
+	}
+
+	try {
+		console.log('Running test suite before versioning/publish steps');
+		await runTests();
+	}
+	finally {
+		if (resolverOriginal !== null) {
+			await fs.promises.writeFile(resolverPath, resolverOriginal);
+		}
+	}
+}
+
 async function main() {
 	if (!PREVIEW_CHANGES) {
 		await ensureNpmAuth();
 
-		console.log('Running test suite before versioning/publish steps');
 		try {
-			await run('yarn', ['test'], {cwd: ROOT_DIR, env: process.env});
+			await runTestsWithClayResolverPatch(() =>
+				run('yarn', ['test', '--maxWorkers=3', '--no-coverage'], {
+					cwd: ROOT_DIR,
+					env: process.env,
+				})
+			);
 		}
 		catch (error) {
 			console.error(
@@ -483,7 +610,8 @@ async function main() {
 			`Setting all clay-* package versions and @clayui/* deps to ${TARGET_VERSION}`
 		);
 
-		const dirs = [...packageDirs, ROOT_DIR];
+		const dirs =
+			LAYOUT === 'clay' ? [...packageDirs] : [...packageDirs, ROOT_DIR];
 
 		for (const dir of dirs) {
 			console.log(`Updating ${path.basename(dir)}`);
