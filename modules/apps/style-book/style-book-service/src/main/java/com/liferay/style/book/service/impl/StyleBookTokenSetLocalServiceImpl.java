@@ -6,26 +6,24 @@
 package com.liferay.style.book.service.impl;
 
 import com.liferay.frontend.token.definition.FrontendTokenCategory;
-import com.liferay.frontend.token.definition.FrontendTokenDefinition;
 import com.liferay.frontend.token.definition.FrontendTokenDefinitionRegistry;
 import com.liferay.frontend.token.definition.FrontendTokenSet;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.style.book.exception.DuplicateStyleBookTokenSetNameException;
+import com.liferay.style.book.exception.NoSuchTokenSetException;
 import com.liferay.style.book.exception.StyleBookTokenSetFrontendTokenCategoryNameException;
 import com.liferay.style.book.exception.StyleBookTokenSetNameException;
+import com.liferay.style.book.internal.frontend.token.FrontendTokenDefinitionUtil;
 import com.liferay.style.book.model.StyleBookEntry;
 import com.liferay.style.book.model.StyleBookTokenSet;
 import com.liferay.style.book.service.StyleBookEntryLocalService;
 import com.liferay.style.book.service.base.StyleBookTokenSetLocalServiceBaseImpl;
-
-import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -47,11 +45,68 @@ public class StyleBookTokenSetLocalServiceImpl
 			String themeId)
 		throws PortalException {
 
+		_validateName(name);
+
+		_validateDuplicateStyleBookTokenSet(
+			frontendTokenCategoryName, name, styleBookEntryId, themeId);
+
 		User user = _userLocalService.getUser(userId);
 
-		_validate(
-			user.getCompanyId(), frontendTokenCategoryName, name,
+		FrontendTokenSet frontendTokenSet =
+			FrontendTokenDefinitionUtil.fetchFrontendTokenSet(
+				_getFrontendTokenCategory(
+					user.getCompanyId(), frontendTokenCategoryName, themeId),
+				name);
+
+		if (frontendTokenSet != null) {
+			throw new DuplicateStyleBookTokenSetNameException(
+				"Style book token set name \"" + name + "\" already exists");
+		}
+
+		return _addStyleBookTokenSet(
+			externalReferenceCode, user, description, frontendTokenCategoryName,
+			name, styleBookEntryId, themeId);
+	}
+
+	@Override
+	public StyleBookTokenSet getOrAddStaticStyleBookTokenSet(
+			long userId, String frontendTokenCategoryName, String name,
+			long styleBookEntryId, String themeId)
+		throws PortalException {
+
+		StyleBookTokenSet styleBookTokenSet =
+			styleBookTokenSetPersistence.fetchBySBEI_FTCN_N_T(
+				styleBookEntryId, frontendTokenCategoryName, name, themeId);
+
+		if (styleBookTokenSet != null) {
+			return styleBookTokenSet;
+		}
+
+		_validateName(name);
+
+		User user = _userLocalService.getUser(userId);
+
+		FrontendTokenSet frontendTokenSet =
+			FrontendTokenDefinitionUtil.fetchFrontendTokenSet(
+				_getFrontendTokenCategory(
+					user.getCompanyId(), frontendTokenCategoryName, themeId),
+				name);
+
+		if (frontendTokenSet == null) {
+			throw new NoSuchTokenSetException(
+				"Style book token set \"" + name + "\" does not exist");
+		}
+
+		return _addStyleBookTokenSet(
+			null, user, StringPool.BLANK, frontendTokenCategoryName, name,
 			styleBookEntryId, themeId);
+	}
+
+	private StyleBookTokenSet _addStyleBookTokenSet(
+			String externalReferenceCode, User user, String description,
+			String frontendTokenCategoryName, String name,
+			long styleBookEntryId, String themeId)
+		throws PortalException {
 
 		StyleBookTokenSet styleBookTokenSet =
 			styleBookTokenSetPersistence.create(
@@ -80,64 +135,28 @@ public class StyleBookTokenSetLocalServiceImpl
 	}
 
 	private FrontendTokenCategory _getFrontendTokenCategory(
-		long companyId, String frontendTokenCategoryName, String themeId) {
-
-		FrontendTokenDefinition frontendTokenDefinition =
-			_frontendTokenDefinitionRegistry.getFrontendTokenDefinition(
-				companyId, themeId);
-
-		if (frontendTokenDefinition == null) {
-			return null;
-		}
-
-		for (FrontendTokenCategory frontendTokenCategory :
-				frontendTokenDefinition.getFrontendTokenCategories()) {
-
-			JSONObject jsonObject = frontendTokenCategory.getJSONObject(
-				LocaleUtil.getSiteDefault());
-
-			if (Objects.equals(
-					frontendTokenCategoryName, jsonObject.getString("name"))) {
-
-				return frontendTokenCategory;
-			}
-		}
-
-		return null;
-	}
-
-	private FrontendTokenSet _getFrontendTokenSet(
-		FrontendTokenCategory frontendTokenCategory, String name) {
-
-		for (FrontendTokenSet frontendTokenSet :
-				frontendTokenCategory.getFrontendTokenSets()) {
-
-			JSONObject jsonObject = frontendTokenSet.getJSONObject(
-				LocaleUtil.getSiteDefault());
-
-			if (Objects.equals(name, jsonObject.getString("name"))) {
-				return frontendTokenSet;
-			}
-		}
-
-		return null;
-	}
-
-	private void _validate(
-			long companyId, String frontendTokenCategoryName, String name,
-			long styleBookEntryId, String themeId)
+			long companyId, String frontendTokenCategoryName, String themeId)
 		throws PortalException {
 
-		if (Validator.isNull(name)) {
-			throw new StyleBookTokenSetNameException("Name is null");
+		FrontendTokenCategory frontendTokenCategory =
+			FrontendTokenDefinitionUtil.fetchFrontendTokenCategory(
+				_frontendTokenDefinitionRegistry.getFrontendTokenDefinition(
+					companyId, themeId),
+				frontendTokenCategoryName);
+
+		if (frontendTokenCategory == null) {
+			throw new StyleBookTokenSetFrontendTokenCategoryNameException(
+				"Frontend token category \"" + frontendTokenCategoryName +
+					"\" does not exist");
 		}
 
-		if (name.length() > ModelHintsUtil.getMaxLength(
-				StyleBookTokenSet.class.getName(), "name")) {
+		return frontendTokenCategory;
+	}
 
-			throw new StyleBookTokenSetNameException(
-				"Maximum length of name exceeded");
-		}
+	private void _validateDuplicateStyleBookTokenSet(
+			String frontendTokenCategoryName, String name,
+			long styleBookEntryId, String themeId)
+		throws PortalException {
 
 		StyleBookTokenSet styleBookTokenSet =
 			styleBookTokenSetPersistence.fetchBySBEI_FTCN_N_T(
@@ -147,22 +166,18 @@ public class StyleBookTokenSetLocalServiceImpl
 			throw new DuplicateStyleBookTokenSetNameException(
 				"Style book token set name \"" + name + "\" already exists");
 		}
+	}
 
-		FrontendTokenCategory frontendTokenCategory = _getFrontendTokenCategory(
-			companyId, frontendTokenCategoryName, themeId);
-
-		if (frontendTokenCategory == null) {
-			throw new StyleBookTokenSetFrontendTokenCategoryNameException(
-				"Frontend token category \"" + frontendTokenCategoryName +
-					"\" does not exist");
+	private void _validateName(String name) throws PortalException {
+		if (Validator.isNull(name)) {
+			throw new StyleBookTokenSetNameException("Name is null");
 		}
 
-		FrontendTokenSet frontendTokenSet = _getFrontendTokenSet(
-			frontendTokenCategory, name);
+		if (name.length() > ModelHintsUtil.getMaxLength(
+				StyleBookTokenSet.class.getName(), "name")) {
 
-		if (frontendTokenSet != null) {
-			throw new DuplicateStyleBookTokenSetNameException(
-				"Style book token set name \"" + name + "\" already exists");
+			throw new StyleBookTokenSetNameException(
+				"Maximum length of name exceeded");
 		}
 	}
 
