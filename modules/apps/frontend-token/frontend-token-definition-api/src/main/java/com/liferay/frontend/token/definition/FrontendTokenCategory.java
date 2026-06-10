@@ -25,4 +25,6 @@ public interface FrontendTokenCategory {
 
 	public JSONObject getJSONObject(Locale locale);
 
+	public String getName();
+
 }

@@ -33,6 +33,8 @@ public class FrontendTokenSetImpl implements FrontendTokenSet {
 		_jsonLocalizer = frontendTokenDefinitionImpl.createJSONLocalizer(
 			jsonObject);
 
+		_name = jsonObject.getString("name");
+
 		JSONArray frontendTokensJSONArray = jsonObject.getJSONArray(
 			"frontendTokens");
 
@@ -71,6 +73,11 @@ public class FrontendTokenSetImpl implements FrontendTokenSet {
 		return _jsonLocalizer.getJSONObject(locale);
 	}
 
+	@Override
+	public String getName() {
+		return _name;
+	}
+
 	protected FrontendTokenDefinitionImpl getFrontendTokenDefinition() {
 		return _frontendTokenCategoryImpl.getFrontendTokenDefinition();
 	}
@@ -80,5 +87,6 @@ public class FrontendTokenSetImpl implements FrontendTokenSet {
 		new ArrayList<>();
 	private final Collection<FrontendToken> _frontendTokens = new ArrayList<>();
 	private final JSONLocalizer _jsonLocalizer;
+	private final String _name;
 
 }

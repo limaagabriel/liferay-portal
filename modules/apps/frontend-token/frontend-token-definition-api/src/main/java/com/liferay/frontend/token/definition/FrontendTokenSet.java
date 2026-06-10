@@ -23,4 +23,6 @@ public interface FrontendTokenSet {
 
 	public JSONObject getJSONObject(Locale locale);
 
+	public String getName();
+
 }
