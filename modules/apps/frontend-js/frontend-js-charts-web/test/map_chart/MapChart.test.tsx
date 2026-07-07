@@ -549,3 +549,138 @@ describe('MapChart interaction', () => {
 		await checkAccessibility({bestPractices: true, context: container});
 	});
 });
+
+describe('MapChart legend', () => {
+	it('renders no legend by default', () => {
+		const {container} = render(<MapChart data={DATA} title="Population" />);
+
+		expect(
+			container.querySelector('.chart-map-legend-list')
+		).not.toBeInTheDocument();
+		expect(
+			container.querySelector('.chart-map-legend-table')
+		).not.toBeInTheDocument();
+		expect(
+			container.querySelector('.chart-map-legend-scale')
+		).not.toBeInTheDocument();
+	});
+
+	it('renders one list item per datum', () => {
+		const {container} = render(
+			<MapChart data={DATA} legend="list" title="Population" />
+		);
+
+		expect(
+			container.querySelectorAll('.chart-map-legend-list-item')
+		).toHaveLength(DATA.length);
+	});
+
+	it('renders one table row per datum', () => {
+		const {container} = render(
+			<MapChart data={DATA} legend="table" title="Population" />
+		);
+
+		expect(
+			container.querySelectorAll('.chart-map-legend-table-row')
+		).toHaveLength(DATA.length);
+	});
+
+	it('renders a scale swatch per effective bucket, matching the map instead of the requested steps', () => {
+		const {container} = render(
+			<MapChart data={DATA} legend="scale" steps={6} title="Population" />
+		);
+
+		const bucketCount = getEffectiveBucketCount(DATA, 6);
+
+		expect(bucketCount).toBe(3);
+
+		const swatches = container.querySelectorAll(
+			'.chart-map-legend-scale-swatch'
+		);
+
+		expect(swatches).toHaveLength(bucketCount);
+
+		const markerFills = new Set(
+			Array.from(
+				container.querySelectorAll('circle.chart-map-marker')
+			).map((marker) =>
+				(marker as SVGCircleElement).style.getPropertyValue(
+					'--marker-fill'
+				)
+			)
+		);
+
+		expect(markerFills.size).toBe(bucketCount);
+
+		expect(screen.getByText('less')).toBeInTheDocument();
+		expect(screen.getByText('more')).toBeInTheDocument();
+	});
+
+	it('marks the hovered marker as active in the list legend', () => {
+		const {container} = render(
+			<MapChart data={DATA} legend="list" title="Population" />
+		);
+
+		const marker = screen.getByRole('img', {name: 'China: 14210'});
+		const legendItems = container.querySelectorAll(
+			'.chart-map-legend-list-item'
+		);
+
+		expect(legendItems[0]).not.toHaveClass('is-active');
+
+		fireEvent.pointerEnter(marker);
+
+		expect(legendItems[0]).toHaveClass('is-active');
+	});
+
+	it('marks the keyboard-focused marker as active in the table legend', () => {
+		const {container} = render(
+			<MapChart data={DATA} legend="table" title="Population" />
+		);
+
+		const marker = screen.getByRole('img', {name: 'India: 9870'});
+		const legendRows = container.querySelectorAll(
+			'.chart-map-legend-table-row'
+		);
+
+		fireEvent.focus(marker);
+
+		expect(legendRows[2]).toHaveClass('is-active');
+	});
+
+	it('focuses the corresponding marker when a list legend item is clicked', () => {
+		render(<MapChart data={DATA} legend="list" title="Population" />);
+
+		const legendItem = screen.getByText('United States').closest('li');
+
+		fireEvent.click(legendItem as HTMLLIElement);
+
+		expect(
+			screen.getByRole('img', {name: 'United States: 12450'})
+		).toHaveFocus();
+	});
+
+	it('has no accessibility violations with the list legend', async () => {
+		const {container} = render(
+			<MapChart data={DATA} legend="list" title="Population" />
+		);
+
+		await checkAccessibility({bestPractices: true, context: container});
+	});
+
+	it('has no accessibility violations with the table legend', async () => {
+		const {container} = render(
+			<MapChart data={DATA} legend="table" title="Population" />
+		);
+
+		await checkAccessibility({bestPractices: true, context: container});
+	});
+
+	it('has no accessibility violations with the scale legend', async () => {
+		const {container} = render(
+			<MapChart data={DATA} legend="scale" title="Population" />
+		);
+
+		await checkAccessibility({bestPractices: true, context: container});
+	});
+});

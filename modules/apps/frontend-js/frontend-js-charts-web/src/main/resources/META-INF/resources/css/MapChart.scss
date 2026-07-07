@@ -16,13 +16,16 @@
 	}
 
 	.chart-map-body {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
 		position: relative;
 	}
 
 	.chart-map-svg {
 		block-size: auto;
 		display: block;
-		inline-size: 100%;
+		flex: 1 1 320px;
 	}
 
 	.chart-map-tooltip {
@@ -107,6 +110,147 @@
 		fill: none;
 		stroke: $white;
 		stroke-width: 2;
+	}
+
+	.chart-map-legend-list {
+		list-style: none;
+		margin: 0.5rem 0 0;
+		padding: 0;
+	}
+
+	.chart-map-legend-list-item {
+		align-items: center;
+		border-radius: 0.25rem;
+		cursor: pointer;
+		display: flex;
+		gap: 0.5rem;
+		padding-block: 0.25rem;
+		padding-inline: 0.5rem;
+		transition:
+			background 140ms ease,
+			color 140ms ease;
+
+		&:hover {
+			background: $light;
+		}
+
+		&.is-active {
+			background: $primary;
+			color: $white;
+
+			.chart-map-legend-list-swatch {
+				border-color: $white;
+			}
+		}
+	}
+
+	.chart-map-legend-list-label {
+		flex: 1;
+	}
+
+	.chart-map-legend-list-value {
+		font-variant-numeric: tabular-nums;
+		font-weight: 600;
+	}
+
+	.chart-map-legend-list-swatch {
+		block-size: 0.75rem;
+		border: 1px solid $light-d2;
+		border-radius: 0.125rem;
+		display: inline-block;
+		flex-shrink: 0;
+		inline-size: 0.75rem;
+	}
+
+	.chart-map-legend-table {
+		border-collapse: collapse;
+		inline-size: 100%;
+		margin-block-start: 0.75rem;
+
+		th,
+		td {
+			padding-block: 0.25rem;
+			padding-inline: 0.5rem;
+			text-align: start;
+		}
+
+		thead th {
+			border-block-end: 1px solid $light-d2;
+			font-size: 0.75rem;
+			font-weight: 600;
+			letter-spacing: 0.03em;
+			opacity: 0.7;
+			text-transform: uppercase;
+			white-space: nowrap;
+		}
+
+		tbody {
+			th,
+			td {
+				border-block-end: 1px solid $light-d2;
+			}
+		}
+	}
+
+	.chart-map-legend-table-row {
+		cursor: pointer;
+		transition:
+			background 140ms ease,
+			color 140ms ease;
+
+		&:hover {
+			background: $light;
+		}
+
+		&.is-active {
+			background: $primary;
+			color: $white;
+
+			.chart-map-legend-table-swatch {
+				border-color: $white;
+			}
+		}
+	}
+
+	.chart-map-legend-table-swatch {
+		block-size: 0.75rem;
+		border: 1px solid $light-d2;
+		border-radius: 0.125rem;
+		display: inline-block;
+		inline-size: 0.75rem;
+	}
+
+	.chart-map-legend-scale {
+		align-items: center;
+		display: flex;
+		gap: 0.5rem;
+		margin-block-start: 0.75rem;
+	}
+
+	.chart-map-legend-scale-label {
+		font-size: 0.75rem;
+	}
+
+	.chart-map-legend-scale-swatches {
+		display: flex;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.chart-map-legend-scale-swatch {
+		block-size: 0.75rem;
+		inline-size: 1.5rem;
+
+		&:first-child {
+			border-end-start-radius: 9999px;
+			border-start-start-radius: 9999px;
+		}
+
+		&:last-child {
+			border-end-end-radius: 9999px;
+			border-start-end-radius: 9999px;
+		}
 	}
 }
 
