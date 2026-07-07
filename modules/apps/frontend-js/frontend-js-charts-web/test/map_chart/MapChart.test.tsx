@@ -155,6 +155,17 @@ describe('MapChart', () => {
 
 		await checkAccessibility({bestPractices: true, context: container});
 	});
+
+	it('merges a passed className onto the root figure alongside chart-map', () => {
+		const {container} = render(
+			<MapChart className="mx-auto" data={DATA} title="Population" />
+		);
+
+		const figure = container.querySelector('figure');
+
+		expect(figure).toHaveClass('chart-map');
+		expect(figure).toHaveClass('mx-auto');
+	});
 });
 
 describe('MapChart fit prop', () => {
