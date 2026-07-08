@@ -31,7 +31,7 @@ const DEFAULT_DIMS: ChartContainerDims = {
 
 const EMPTY_EXTENT: ChartSeriesExtent = {max: 0, min: 0};
 
-interface Props<T> extends ChartStateProps {
+export interface ChartContainerProps<T> extends ChartStateProps {
 	categories?: string[];
 	children: React.ReactNode;
 	data: readonly T[];
@@ -68,7 +68,7 @@ export default function ChartContainer<T>({
 	scheme = 'blue',
 	xAxis,
 	yAxis,
-}: Props<T>) {
+}: ChartContainerProps<T>) {
 	const [seriesById, setSeriesById] = useState<Map<string, ChartSeriesMeta>>(
 		() => new Map()
 	);

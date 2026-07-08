@@ -25,9 +25,19 @@ describe('BarChart', () => {
 
 		const bars = screen.getAllByRole('img');
 
+		// `BarChart` maps its data onto one composable `BarSeries`, whose
+		// per-bar `aria-label` is `${seriesLabel}, ${category}: ${value}`; the
+		// facade uses the chart `title` as that series label.
+
 		expect(bars).toHaveLength(DATA.length);
-		expect(bars[0]).toHaveAttribute('aria-label', 'Jan: 12');
-		expect(bars[1]).toHaveAttribute('aria-label', 'Feb: 18');
+		expect(bars[0]).toHaveAttribute(
+			'aria-label',
+			'Monthly visits, Jan: 12'
+		);
+		expect(bars[1]).toHaveAttribute(
+			'aria-label',
+			'Monthly visits, Feb: 18'
+		);
 	});
 
 	it('exposes the title as the chart accessible name', () => {
@@ -64,13 +74,19 @@ describe('BarChart', () => {
 		);
 	});
 
-	it('assigns a per-bar fill in the categorical scheme', () => {
-		render(
+	it('resolves one categorical color for the whole bar series', () => {
+
+		// `BarChart` maps its data onto a single composable `BarSeries`, which
+		// resolves one color for the whole series (`--charts-bar-color` on the
+		// series `<g>`) rather than one hue per bar, so every bar now renders
+		// the same categorical shade instead of a distinct one.
+
+		const {container} = render(
 			<BarChart data={DATA} scheme="categorical" title="Monthly visits" />
 		);
 
-		expect(screen.getAllByRole('img')[0]).toHaveStyle({
-			'--charts-bar-fill':
+		expect(container.querySelector('.charts-bar-series')).toHaveStyle({
+			'--charts-bar-color':
 				'var(--primary-l0, light-dark(#5791ff, #0f62ff))',
 		});
 	});
@@ -78,13 +94,15 @@ describe('BarChart', () => {
 	it('renders a semantic detail table for legend="table"', () => {
 		render(<BarChart data={DATA} legend="table" title="Monthly visits" />);
 
-		expect(screen.getAllByRole('columnheader')).toHaveLength(5);
+		// The shared `Legend` lists one row per registered series; since this
+		// facade registers a single `BarSeries` for the whole chart, the table
+		// has one row (named after the chart title) and no per-bar value/share
+		// columns, unlike the old `BarChartLegend`.
+
+		expect(screen.getAllByRole('columnheader')).toHaveLength(3);
 		expect(screen.getByRole('table')).toBeInTheDocument();
-
-		// One row header (scope="row") per datum.
-
 		expect(
-			screen.getByRole('rowheader', {name: 'Jan'})
+			screen.getByRole('rowheader', {name: 'Monthly visits'})
 		).toBeInTheDocument();
 	});
 

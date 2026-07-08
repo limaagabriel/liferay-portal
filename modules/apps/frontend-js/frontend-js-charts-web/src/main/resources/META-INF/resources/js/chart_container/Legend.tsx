@@ -10,7 +10,7 @@ import {useChartContainer} from './ChartContainerContext';
 
 import type {ChartLegendItem, ChartLegendLayout} from '../chart_legend/types';
 
-interface Props {
+export interface LegendProps {
 	layout: ChartLegendLayout;
 
 	/**
@@ -47,7 +47,7 @@ function renderSwatch(color: string) {
  * hovered/active series concept, so `onActivate`/`onDeactivate`/`onSelect`
  * are no-ops and every item renders `active: false`.
  */
-export default function Legend({layout, titleId}: Props) {
+export default function Legend({layout, titleId}: LegendProps) {
 	const {series} = useChartContainer();
 
 	const noop = useCallback(() => {}, []);

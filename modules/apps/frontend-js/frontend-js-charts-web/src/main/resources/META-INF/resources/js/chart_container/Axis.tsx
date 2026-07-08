@@ -13,7 +13,7 @@ const CATEGORY_LABEL_OFFSET = 12;
 const TICK_LABEL_GAP = 8;
 const TICK_LABEL_BASELINE_OFFSET = 4;
 
-interface Props {
+export interface AxisProps {
 
 	/** Formats a Y tick value for its label. Defaults to `String`. */
 	yFormat?: (value: number) => string;
@@ -30,7 +30,7 @@ interface Props {
  * shared across every series, so the label set is a container-level concern
  * rather than something any one series provides.
  */
-export default function Axis({yFormat = String}: Props) {
+export default function Axis({yFormat = String}: AxisProps) {
 	const {categories, dims, scale} = useChartContainer();
 
 	return (
