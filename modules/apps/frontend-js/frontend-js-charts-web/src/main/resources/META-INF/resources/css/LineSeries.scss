@@ -1,0 +1,47 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+@import 'atlas-custom-properties/_variables';
+
+.charts-line-series {
+	// Each series carries its color in `--charts-line-color`, set inline, so
+	// the line and its markers all tint from one source.
+
+	&__line {
+		fill: none;
+		stroke: var(--charts-line-color, $primary);
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 2;
+	}
+
+	// The white stroke rings the marker so it stays legible where it overlaps
+	// the line or another marker.
+
+	&__marker {
+		fill: var(--charts-line-color, $primary);
+		stroke: $white;
+		stroke-width: 1;
+	}
+
+	// Transparent hit target sitting over each marker. It owns focus and
+	// pointer interaction; the visible marker is decorative.
+
+	&__point {
+		cursor: pointer;
+		fill: transparent;
+		outline: none;
+		stroke: transparent;
+	}
+
+	// Focus halo: a white ring behind the focused point, larger than the
+	// resting marker, so keyboard focus stays visible regardless of the
+	// series color. It is driven by focus state, not CSS `:focus-visible`, so
+	// it also shows when a point is selected by mouse.
+
+	&__halo {
+		fill: $white;
+	}
+}
