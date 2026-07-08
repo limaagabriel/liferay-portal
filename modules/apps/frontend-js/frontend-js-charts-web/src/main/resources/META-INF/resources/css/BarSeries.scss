@@ -1,0 +1,29 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+@import 'atlas-custom-properties/_variables';
+
+.charts-bar-series {
+	// Each series carries its color in `--charts-bar-color`, set inline, so
+	// every bar in the series tints from one source.
+
+	&__bar {
+		cursor: pointer;
+		fill: var(--charts-bar-color, $primary);
+		outline: none;
+		transition:
+			fill 160ms ease,
+			outline-color 160ms ease;
+	}
+
+	// Focus is driven by the provider's `focus` state (the `is-focused`
+	// class), not `:focus-visible`, so the ring stays in sync with the single
+	// roving tab stop regardless of how focus was set.
+
+	&__bar.is-focused {
+		outline: 2px solid $primary-d2;
+		outline-offset: 2px;
+	}
+}
