@@ -20,6 +20,9 @@ const BAR_DATA = [
 	{label: 'Referral', value: 900},
 ];
 
+// BarChart now wraps ChartState internally, but BarChartProps has no
+// error/loading passthrough, so the external wrapper below is kept.
+
 export function BarChartSamples() {
 	return (
 		<>

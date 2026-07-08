@@ -7,6 +7,7 @@ import ClayTabs from '@clayui/tabs';
 import React, {useState} from 'react';
 
 import {BarChartSamples} from './BarChartSamples';
+import {ComboChartSamples} from './ComboChartSamples';
 import {LineChartSamples} from './LineChartSamples';
 import {MapChartSamples} from './MapChartSamples';
 import {PieChartSamples} from './PieChartSamples';
@@ -21,6 +22,7 @@ const TABS = [
 	{Samples: LineChartSamples, label: 'Line Chart'},
 	{Samples: PieChartSamples, label: 'Pie Chart'},
 	{Samples: MapChartSamples, label: 'Map Chart'},
+	{Samples: ComboChartSamples, label: 'Combo Chart'},
 ];
 
 export function App() {
