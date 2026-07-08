@@ -12,6 +12,7 @@ import {
 	ChartContainerDims,
 	ChartSeriesExtent,
 	ChartSeriesFocus,
+	ChartSeriesMeta,
 } from './ChartContainerContext';
 import {getChartScale} from './plot/scale';
 
@@ -31,6 +32,7 @@ const DEFAULT_DIMS: ChartContainerDims = {
 const EMPTY_EXTENT: ChartSeriesExtent = {max: 0, min: 0};
 
 interface Props<T> extends ChartStateProps {
+	categories?: string[];
 	children: React.ReactNode;
 	data: readonly T[];
 	dims?: Partial<ChartContainerDims>;
@@ -40,9 +42,9 @@ interface Props<T> extends ChartStateProps {
 }
 
 function unifyExtents(
-	extentsById: Record<string, ChartSeriesExtent>
+	seriesById: Map<string, ChartSeriesMeta>
 ): ChartSeriesExtent {
-	const extents = Object.values(extentsById);
+	const extents = Array.from(seriesById.values()).map((meta) => meta.extent);
 
 	if (!extents.length) {
 		return EMPTY_EXTENT;
@@ -55,6 +57,7 @@ function unifyExtents(
 }
 
 export default function ChartContainer<T>({
+	categories = [],
 	children,
 	data,
 	dims: dimsProp,
@@ -66,9 +69,9 @@ export default function ChartContainer<T>({
 	xAxis,
 	yAxis,
 }: Props<T>) {
-	const [seriesExtents, setSeriesExtents] = useState<
-		Record<string, ChartSeriesExtent>
-	>({});
+	const [seriesById, setSeriesById] = useState<Map<string, ChartSeriesMeta>>(
+		() => new Map()
+	);
 	const [focus, setFocus] = useState<ChartSeriesFocus | null>(null);
 
 	const dims = useMemo<ChartContainerDims>(
@@ -80,10 +83,9 @@ export default function ChartContainer<T>({
 		[dimsProp]
 	);
 
-	const valueExtent = useMemo(
-		() => unifyExtents(seriesExtents),
-		[seriesExtents]
-	);
+	const valueExtent = useMemo(() => unifyExtents(seriesById), [seriesById]);
+
+	const series = useMemo(() => Array.from(seriesById.values()), [seriesById]);
 
 	const scale = useMemo(
 		() =>
@@ -99,36 +101,46 @@ export default function ChartContainer<T>({
 		[dims, valueExtent, xAxis, yAxis]
 	);
 
-	const registerSeries = useCallback(
-		(id: string, extent: ChartSeriesExtent) => {
-			setSeriesExtents((current) => ({...current, [id]: extent}));
+	const registerSeries = useCallback((meta: ChartSeriesMeta) => {
+		setSeriesById((current) => new Map(current).set(meta.id, meta));
 
-			return () => {
-				setSeriesExtents((current) => {
-					const next = {...current};
+		return () => {
+			setSeriesById((current) => {
+				const next = new Map(current);
 
-					delete next[id];
+				next.delete(meta.id);
 
-					return next;
-				});
-			};
-		},
-		[]
-	);
+				return next;
+			});
+		};
+	}, []);
 
 	const value = useMemo<ChartContainerContextValue<T>>(
 		() => ({
+			categories,
 			data,
 			dims,
 			focus,
 			registerSeries,
 			scale,
 			scheme,
+			series,
 			setFocus,
 			xAxis,
 			yAxis,
 		}),
-		[data, dims, focus, registerSeries, scale, scheme, xAxis, yAxis]
+		[
+			categories,
+			data,
+			dims,
+			focus,
+			registerSeries,
+			scale,
+			scheme,
+			series,
+			xAxis,
+			yAxis,
+		]
 	);
 
 	return (

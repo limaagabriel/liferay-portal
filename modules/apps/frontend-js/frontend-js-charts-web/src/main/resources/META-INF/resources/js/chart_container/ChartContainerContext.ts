@@ -30,18 +30,32 @@ export interface ChartSeriesFocus {
 	seriesId: string;
 }
 
+/**
+ * A registered series' identity: what the Legend needs to list it (label,
+ * color) plus the value-extent it contributes to the unified Y domain.
+ */
+export interface ChartSeriesMeta {
+	color: string;
+	extent: ChartSeriesExtent;
+	id: string;
+	label: string;
+}
+
 export interface ChartContainerContextValue<T> {
+	categories: string[];
 	data: readonly T[];
 	dims: ChartContainerDims;
 	focus: ChartSeriesFocus | null;
 
 	/**
-	 * Registers a series' value-extent so the container can derive the unified
-	 * Y domain, and returns the unregister callback for the series' cleanup.
+	 * Registers a series' identity and value-extent so the container can
+	 * derive the unified Y domain and list it in the Legend, and returns the
+	 * unregister callback for the series' cleanup.
 	 */
-	registerSeries: (id: string, extent: ChartSeriesExtent) => () => void;
+	registerSeries: (meta: ChartSeriesMeta) => () => void;
 	scale: ChartScale;
 	scheme: ChartScheme;
+	series: ChartSeriesMeta[];
 	setFocus: (focus: ChartSeriesFocus | null) => void;
 	xAxis: ChartCategoricalAxisConfig;
 	yAxis: ChartNumericAxisConfig;

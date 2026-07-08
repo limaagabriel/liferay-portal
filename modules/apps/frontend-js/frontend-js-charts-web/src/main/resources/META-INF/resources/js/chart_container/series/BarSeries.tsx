@@ -160,9 +160,17 @@ export default function BarSeries<T>({
 
 	const barRefs = useRef<Array<SVGRectElement | null>>([]);
 
+	const resolvedColor = resolveColor(scheme, colorIndex, color);
+
 	useEffect(
-		() => registerSeries(id, computeExtent(data, y)),
-		[data, id, registerSeries, y]
+		() =>
+			registerSeries({
+				color: resolvedColor,
+				extent: computeExtent(data, y),
+				id,
+				label,
+			}),
+		[data, id, label, registerSeries, resolvedColor, y]
 	);
 
 	/**
@@ -189,8 +197,6 @@ export default function BarSeries<T>({
 
 	const focusedIndex = focus?.seriesId === id ? focus.index : null;
 	const tabbableIndex = focusedIndex ?? finiteIndexes[0] ?? null;
-
-	const resolvedColor = resolveColor(scheme, colorIndex, color);
 
 	const setBarRef = useCallback(
 		(index: number, element: SVGRectElement | null) => {

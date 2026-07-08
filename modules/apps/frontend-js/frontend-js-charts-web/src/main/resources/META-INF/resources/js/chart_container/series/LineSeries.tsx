@@ -197,9 +197,17 @@ export default function LineSeries<T>({
 
 	const pointRefs = useRef<Array<SVGCircleElement | null>>([]);
 
+	const resolvedColor = resolveColor(scheme, colorIndex, color);
+
 	useEffect(
-		() => registerSeries(id, computeExtent(data, y)),
-		[data, id, registerSeries, y]
+		() =>
+			registerSeries({
+				color: resolvedColor,
+				extent: computeExtent(data, y),
+				id,
+				label,
+			}),
+		[data, id, label, registerSeries, resolvedColor, y]
 	);
 
 	/**
@@ -227,7 +235,6 @@ export default function LineSeries<T>({
 	const focusedIndex = focus?.seriesId === id ? focus.index : null;
 	const tabbableIndex = focusedIndex ?? finiteIndexes[0] ?? null;
 
-	const resolvedColor = resolveColor(scheme, colorIndex, color);
 	const resolvedDasharray = dasharray ?? dashPatternFor(colorIndex);
 	const resolvedMarker = marker ?? markerShapeFor(colorIndex);
 
