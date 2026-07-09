@@ -44,4 +44,58 @@
 	&__halo {
 		fill: $white;
 	}
+
+	// Reveal stagger: opt-in per series via `is-animated`, gated in JS on the
+	// container's resolved motion policy (prop AND-ed with reduced-motion), so
+	// this rule itself never has to know about the prop or the media query.
+
+	&.is-animated &__line {
+		animation: charts-line-series-fade 480ms ease-out backwards;
+	}
+
+	&.is-animated &__marker-inner {
+		animation: charts-line-series-marker-pop 360ms ease-out backwards;
+		animation-delay: var(--charts-marker-delay, 0ms);
+		transform-box: fill-box;
+		transform-origin: center;
+	}
+}
+
+@keyframes charts-line-series-fade {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes charts-line-series-marker-pop {
+	from {
+		opacity: 0;
+		transform: scale(0);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+// Strip animations under both the OS media query and the Clay
+// `c-prefers-reduced-motion` body class. The container already suppresses
+// `is-animated` for both cases; this is defense-in-depth for markup that
+// sets the class after the container's one-time mount read.
+
+@media (prefers-reduced-motion: reduce) {
+	.charts-line-series__line,
+	.charts-line-series__marker-inner {
+		animation: none !important;
+	}
+}
+
+body.c-prefers-reduced-motion .charts-line-series__line,
+body.c-prefers-reduced-motion .charts-line-series__marker-inner {
+	animation: none !important;
 }

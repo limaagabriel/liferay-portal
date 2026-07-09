@@ -35,7 +35,25 @@ const DEFAULT_Y_AXIS: ChartAxisConfig = {
 
 const EMPTY_EXTENT: ChartSeriesExtent = {max: 0, min: 0};
 
+const REDUCED_MOTION_BODY_CLASS = 'c-prefers-reduced-motion';
+
+/**
+ * Reads the portal's reduced-motion body class once (no live subscription):
+ * good enough for a PoC, since the class is set before React mounts and this
+ * container never needs to react to a mid-session toggle.
+ */
+function isReducedMotionRequested(): boolean {
+	if (typeof document === 'undefined') {
+		return false;
+	}
+
+	return document.body.classList.contains(REDUCED_MOTION_BODY_CLASS);
+}
+
 export interface ChartContainerProps<T> extends ChartStateProps {
+
+	/** Reveal-stagger opt-out; suppressed regardless when reduced-motion is active. */
+	animated?: boolean;
 	categories?: string[];
 	children: React.ReactNode;
 	data: readonly T[];
@@ -61,6 +79,7 @@ function unifyExtents(
 }
 
 export default function ChartContainer<T>({
+	animated = true,
 	categories = [],
 	children,
 	data,
@@ -78,6 +97,9 @@ export default function ChartContainer<T>({
 	);
 	const [focus, setFocus] = useState<ChartSeriesFocus | null>(null);
 	const [active, setActive] = useState<ChartActiveDatum | null>(null);
+	const [reducedMotion] = useState<boolean>(isReducedMotionRequested);
+
+	const animatedEffective = animated && !reducedMotion;
 
 	const dims = useMemo<ChartContainerDims>(
 		() => ({
@@ -137,6 +159,7 @@ export default function ChartContainer<T>({
 	const value = useMemo<ChartContainerContextValue<T>>(
 		() => ({
 			active,
+			animated: animatedEffective,
 			categories,
 			data,
 			dims,
@@ -152,6 +175,7 @@ export default function ChartContainer<T>({
 		}),
 		[
 			active,
+			animatedEffective,
 			categories,
 			data,
 			dims,

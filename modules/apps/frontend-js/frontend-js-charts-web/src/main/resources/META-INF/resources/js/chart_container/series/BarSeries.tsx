@@ -21,6 +21,7 @@ const BAR_RX = 2;
 const INLINE_BAR_THICKNESS = 8;
 const VALUE_LABEL_OFFSET = 6;
 const VALUE_LABEL_TEXT_HEIGHT = 12;
+const BAR_REVEAL_DELAY_STEP = 60;
 
 /**
  * Shades of blue for the `blue` scheme, mirroring `LineSeries`'s own
@@ -289,6 +290,45 @@ function resolveBarAnchor(
 }
 
 /**
+ * Resolves the CSS `transform-origin` a bar's reveal-grow animation scales
+ * from, so it always grows away from the numeric axis' baseline rather than
+ * from its own bounding box. A positive bar's rect already sits with one
+ * edge on the baseline (`resolveBarAnchor`'s "tip" is the far edge instead),
+ * so a negative bar — whose rect sits on the opposite edge — must flip the
+ * origin to the other side, in both orientations.
+ */
+function resolveBarTransformOrigin(
+	bar: BarSeriesBar,
+	numericAxisKey: ChartNumericAxisKey
+): string {
+	const isPositive = bar.value >= 0;
+
+	if (numericAxisKey === 'x') {
+		return isPositive ? 'left center' : 'right center';
+	}
+
+	return isPositive ? 'center bottom' : 'center top';
+}
+
+/**
+ * Resolves a bar rect's inline style: its per-index reveal delay and
+ * baseline-relative transform-origin (always set, since neither does
+ * anything without the `is-animated` class), plus the `colorByCategory`
+ * override when present.
+ */
+function resolveBarStyle(
+	bar: BarSeriesBar,
+	numericAxisKey: ChartNumericAxisKey,
+	barColor: string | undefined
+): React.CSSProperties {
+	return {
+		'--charts-bar-color': barColor,
+		'--charts-bar-delay': `${bar.index * BAR_REVEAL_DELAY_STEP}ms`,
+		'transformOrigin': resolveBarTransformOrigin(bar, numericAxisKey),
+	} as React.CSSProperties;
+}
+
+/**
  * Resolves the id a bar's active datum publishes: in `colorByCategory` mode
  * it must match the per-bar registered legend entry (`${id}-${index}`)
  * rather than the whole series' `id`, so the Legend row highlighted by a
@@ -350,6 +390,7 @@ export default function BarSeries<T>({
 }: BarSeriesProps<T>) {
 	const {
 		active,
+		animated,
 		data,
 		focus,
 		registerSeries,
@@ -568,7 +609,9 @@ export default function BarSeries<T>({
 
 	return (
 		<g
-			className="charts-bar-series"
+			className={`charts-bar-series${
+				numericAxisKey === 'x' ? ' charts-bar-series--horizontal' : ''
+			}${animated ? ' is-animated' : ''}`}
 			style={{'--charts-bar-color': resolvedColor} as React.CSSProperties}
 		>
 			{bars.map((bar) => {
@@ -624,13 +667,11 @@ export default function BarSeries<T>({
 							ref={(element) => setBarRef(bar.index, element)}
 							role="img"
 							rx={barRx}
-							style={
+							style={resolveBarStyle(
+								bar,
+								numericAxisKey,
 								barColor
-									? ({
-											'--charts-bar-color': barColor,
-										} as React.CSSProperties)
-									: undefined
-							}
+							)}
 							tabIndex={isTabbable ? 0 : -1}
 							width={bar.width}
 							x={bar.x}

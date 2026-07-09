@@ -64,6 +64,14 @@ export interface ChartContainerContextValue<T> {
 
 	/** The unified hover-or-focus signal; additive to `focus`, never replaces it. */
 	active: ChartActiveDatum | null;
+
+	/**
+	 * The resolved motion policy: the `animated` prop AND-ed with NOT
+	 * reduced-motion (the `c-prefers-reduced-motion` body class, read once at
+	 * mount). Series read this single flag instead of the raw prop plus
+	 * their own reduced-motion detection.
+	 */
+	animated: boolean;
 	categories: string[];
 	data: readonly T[];
 	dims: ChartContainerDims;

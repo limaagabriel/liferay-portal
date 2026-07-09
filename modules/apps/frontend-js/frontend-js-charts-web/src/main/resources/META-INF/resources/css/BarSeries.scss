@@ -41,4 +41,57 @@
 		font-variant-numeric: tabular-nums;
 		font-weight: 700;
 	}
+
+	// Reveal stagger: opt-in per series via `is-animated`, gated in JS on the
+	// container's resolved motion policy (prop AND-ed with reduced-motion), so
+	// this rule itself never has to know about the prop or the media query.
+
+	&.is-animated &__bar {
+		animation: charts-bar-series-rise 480ms ease-out backwards;
+		animation-delay: var(--charts-bar-delay, 0ms);
+		transform-box: fill-box;
+	}
+
+	&--horizontal.is-animated &__bar {
+		animation-name: charts-bar-series-grow-x;
+	}
+}
+
+@keyframes charts-bar-series-rise {
+	from {
+		opacity: 0;
+		transform: scaleY(0);
+	}
+
+	to {
+		opacity: 1;
+		transform: scaleY(1);
+	}
+}
+
+@keyframes charts-bar-series-grow-x {
+	from {
+		opacity: 0;
+		transform: scaleX(0);
+	}
+
+	to {
+		opacity: 1;
+		transform: scaleX(1);
+	}
+}
+
+// Strip animations under both the OS media query and the Clay
+// `c-prefers-reduced-motion` body class. The container already suppresses
+// `is-animated` for both cases; this is defense-in-depth for markup that
+// sets the class after the container's one-time mount read.
+
+@media (prefers-reduced-motion: reduce) {
+	.charts-bar-series__bar {
+		animation: none !important;
+	}
+}
+
+body.c-prefers-reduced-motion .charts-bar-series__bar {
+	animation: none !important;
 }

@@ -24,6 +24,7 @@ const MARKER_SIZE = 4;
 const MARKER_SIZE_FOCUSED = 6;
 const HALO_SIZE = 8;
 const POINT_HIT_RADIUS = 10;
+const MARKER_REVEAL_DELAY_STEP = 40;
 
 /**
  * Shades of blue for the `blue` scheme, mirroring `LineChart`'s `BLUE_SHADES`.
@@ -194,6 +195,7 @@ export default function LineSeries<T>({
 }: LineSeriesProps<T>) {
 	const {
 		active,
+		animated,
 		data,
 		focus,
 		registerSeries,
@@ -350,7 +352,7 @@ export default function LineSeries<T>({
 
 	return (
 		<g
-			className="charts-line-series"
+			className={`charts-line-series${animated ? ' is-animated' : ''}`}
 			style={
 				{'--charts-line-color': resolvedColor} as React.CSSProperties
 			}
@@ -394,10 +396,24 @@ export default function LineSeries<T>({
 							className="charts-line-series__marker"
 							transform={`translate(${point.x} ${point.y})`}
 						>
-							{renderMarker(
-								resolvedMarker,
-								isFocused ? MARKER_SIZE_FOCUSED : MARKER_SIZE
-							)}
+							<g
+								className="charts-line-series__marker-inner"
+								style={
+									{
+										'--charts-marker-delay': `${
+											point.index *
+											MARKER_REVEAL_DELAY_STEP
+										}ms`,
+									} as React.CSSProperties
+								}
+							>
+								{renderMarker(
+									resolvedMarker,
+									isFocused
+										? MARKER_SIZE_FOCUSED
+										: MARKER_SIZE
+								)}
+							</g>
 						</g>
 
 						<circle
