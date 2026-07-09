@@ -43,6 +43,10 @@
 				border-color: $white;
 			}
 		}
+
+		&.is-muted .charts-legend__swatch {
+			opacity: 0.4;
+		}
 	}
 
 	&__swatch {
@@ -123,6 +127,10 @@
 			.charts-legend-table__cell {
 				color: $white;
 			}
+		}
+
+		&.is-muted .charts-legend__swatch {
+			opacity: 0.4;
 		}
 	}
 

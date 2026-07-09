@@ -27,6 +27,20 @@ export interface ChartSeriesFocus {
 }
 
 /**
+ * The resolved datum behind the container's unified hover-or-focus signal:
+ * which registered series/index it belongs to, its category/value, and the
+ * projected position downstream chrome (Legend now, Tooltip in a later step)
+ * anchors to.
+ */
+export interface ChartActiveDatum {
+	category: string;
+	index: number;
+	position: {x: number; y: number};
+	seriesId: string;
+	value: number;
+}
+
+/**
  * A registered series' identity: what the Legend needs to list it (label,
  * color) plus the value-extent it contributes to the unified Y domain.
  */
@@ -38,6 +52,9 @@ export interface ChartSeriesMeta {
 }
 
 export interface ChartContainerContextValue<T> {
+
+	/** The unified hover-or-focus signal; additive to `focus`, never replaces it. */
+	active: ChartActiveDatum | null;
 	categories: string[];
 	data: readonly T[];
 	dims: ChartContainerDims;
@@ -52,6 +69,7 @@ export interface ChartContainerContextValue<T> {
 	scale: ChartSymmetricScale;
 	scheme: ChartScheme;
 	series: ChartSeriesMeta[];
+	setActive: (active: ChartActiveDatum | null) => void;
 	setFocus: (focus: ChartSeriesFocus | null) => void;
 	xAxis: ChartAxisConfig;
 	yAxis: ChartAxisConfig;

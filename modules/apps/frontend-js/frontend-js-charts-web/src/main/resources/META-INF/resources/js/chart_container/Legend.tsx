@@ -42,26 +42,29 @@ function renderSwatch(color: string) {
  * `chart_legend/ChartLegend`, so the `list`/`table` layouts and their
  * active/hover styling stay in one place across every chart.
  *
- * No cross-series hover/activate highlighting yet: the container currently
- * tracks only a single keyboard-focus tab stop (`focus`/`setFocus`), not a
- * hovered/active series concept, so `onActivate`/`onDeactivate`/`onSelect`
- * are no-ops and every item renders `active: false`.
+ * Cross-highlights the container's unified `active` datum (hover-or-focus,
+ * from `ChartContainer`): the row whose registered `meta.id` matches
+ * `active.seriesId` renders `active`, every other row renders `muted`. Only
+ * that one direction is wired here — hovering a Legend row back onto the
+ * chart (`onActivate`/`onDeactivate`) stays a no-op, deferred alongside the
+ * Tooltip this same signal will drive in a later step.
  */
 export default function Legend({layout, titleId}: LegendProps) {
-	const {series} = useChartContainer();
+	const {active, series} = useChartContainer();
 
 	const noop = useCallback(() => {}, []);
 
 	const items = useMemo<ChartLegendItem[]>(
 		() =>
 			series.map((meta, index) => ({
-				active: false,
+				active: meta.id === active?.seriesId,
 				id: index,
 				label: meta.label,
+				muted: active !== null && meta.id !== active.seriesId,
 				sortValue: index,
 				visual: renderSwatch(meta.color),
 			})),
-		[series]
+		[active, series]
 	);
 
 	if (layout === 'none') {

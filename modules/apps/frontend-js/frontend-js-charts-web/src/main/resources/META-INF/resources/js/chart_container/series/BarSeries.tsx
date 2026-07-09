@@ -265,6 +265,43 @@ function computeGeometry<T>(
 	});
 }
 
+/**
+ * Anchors the active datum's position at the bar's tip (the end farthest
+ * from the baseline) — the point a tooltip would later attach to.
+ */
+function resolveBarAnchor(
+	bar: BarSeriesBar,
+	numericAxisKey: ChartNumericAxisKey
+): {x: number; y: number} {
+	const isPositive = bar.value >= 0;
+
+	if (numericAxisKey === 'x') {
+		return {
+			x: isPositive ? bar.x + bar.width : bar.x,
+			y: bar.y + bar.height / 2,
+		};
+	}
+
+	return {
+		x: bar.x + bar.width / 2,
+		y: isPositive ? bar.y : bar.y + bar.height,
+	};
+}
+
+/**
+ * Resolves the id a bar's active datum publishes: in `colorByCategory` mode
+ * it must match the per-bar registered legend entry (`${id}-${index}`)
+ * rather than the whole series' `id`, so the Legend row highlighted by a
+ * hovered/focused bar is the same row that bar itself registered.
+ */
+function resolveActiveSeriesId(
+	id: string,
+	colorByCategory: boolean,
+	index: number
+): string {
+	return colorByCategory ? `${id}-${index}` : id;
+}
+
 function resolveColor(
 	scheme: ChartScheme,
 	colorIndex: number,
@@ -311,8 +348,18 @@ export default function BarSeries<T>({
 	x,
 	y,
 }: BarSeriesProps<T>) {
-	const {data, focus, registerSeries, scale, scheme, setFocus, xAxis, yAxis} =
-		useChartContainer<T>();
+	const {
+		active,
+		data,
+		focus,
+		registerSeries,
+		scale,
+		scheme,
+		setActive,
+		setFocus,
+		xAxis,
+		yAxis,
+	} = useChartContainer<T>();
 
 	const barRefs = useRef<Array<SVGRectElement | null>>([]);
 
@@ -442,6 +489,46 @@ export default function BarSeries<T>({
 		[focus, id, setFocus]
 	);
 
+	const activateBar = useCallback(
+		(bar: BarSeriesBar) => {
+			setActive({
+				category: bar.category,
+				index: bar.index,
+				position: resolveBarAnchor(bar, numericAxisKey),
+				seriesId: resolveActiveSeriesId(id, colorByCategory, bar.index),
+				value: bar.value,
+			});
+		},
+		[colorByCategory, id, numericAxisKey, setActive]
+	);
+
+	const deactivateBar = useCallback(
+		(index: number) => {
+			const seriesId = resolveActiveSeriesId(id, colorByCategory, index);
+
+			if (active?.seriesId === seriesId && active?.index === index) {
+				setActive(null);
+			}
+		},
+		[active, colorByCategory, id, setActive]
+	);
+
+	/**
+	 * Clears the active datum on pointer leave only when the bar is not also
+	 * keyboard-focused, so moving the mouse off a bar the user is still
+	 * focused on keeps the highlight the focus ring is showing.
+	 */
+	const onMouseLeaveBar = useCallback(
+		(index: number) => {
+			if (barRefs.current[index] === document.activeElement) {
+				return;
+			}
+
+			deactivateBar(index);
+		},
+		[deactivateBar]
+	);
+
 	const onKeyDownBar = useCallback(
 		(index: number, event: React.KeyboardEvent) => {
 			const position = finiteIndexes.indexOf(index);
@@ -520,11 +607,19 @@ export default function BarSeries<T>({
 								isFocused ? ' is-focused' : ''
 							}`}
 							height={bar.height}
-							onBlur={() => onBlurBar(bar.index)}
-							onFocus={() => onFocusBar(bar.index)}
+							onBlur={() => {
+								onBlurBar(bar.index);
+								deactivateBar(bar.index);
+							}}
+							onFocus={() => {
+								onFocusBar(bar.index);
+								activateBar(bar);
+							}}
 							onKeyDown={(event) =>
 								onKeyDownBar(bar.index, event)
 							}
+							onMouseEnter={() => activateBar(bar)}
+							onMouseLeave={() => onMouseLeaveBar(bar.index)}
 							ref={(element) => setBarRef(bar.index, element)}
 							role="img"
 							rx={barRx}

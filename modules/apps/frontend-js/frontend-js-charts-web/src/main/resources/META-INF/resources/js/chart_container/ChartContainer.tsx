@@ -7,6 +7,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 
 import ChartState from '../chart_state_wrapper/ChartState';
 import {
+	ChartActiveDatum,
 	ChartContainerContext,
 	ChartContainerContextValue,
 	ChartContainerDims,
@@ -76,6 +77,7 @@ export default function ChartContainer<T>({
 		() => new Map()
 	);
 	const [focus, setFocus] = useState<ChartSeriesFocus | null>(null);
+	const [active, setActive] = useState<ChartActiveDatum | null>(null);
 
 	const dims = useMemo<ChartContainerDims>(
 		() => ({
@@ -134,6 +136,7 @@ export default function ChartContainer<T>({
 
 	const value = useMemo<ChartContainerContextValue<T>>(
 		() => ({
+			active,
 			categories,
 			data,
 			dims,
@@ -142,11 +145,13 @@ export default function ChartContainer<T>({
 			scale,
 			scheme,
 			series,
+			setActive,
 			setFocus,
 			xAxis,
 			yAxis,
 		}),
 		[
+			active,
 			categories,
 			data,
 			dims,

@@ -81,6 +81,7 @@ export default function ChartLegendTable({
 					<tr
 						className={classNames('charts-legend-table__row', {
 							'is-active': row.active,
+							'is-muted': row.muted,
 						})}
 						key={row.id}
 						onClick={() => onSelect(row.id)}

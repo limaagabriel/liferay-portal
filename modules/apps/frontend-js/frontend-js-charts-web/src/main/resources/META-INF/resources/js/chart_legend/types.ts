@@ -27,6 +27,9 @@ export interface ChartLegendItem {
 	/** Optional value shown next to the label in the `list` layout. */
 	listValue?: ReactNode;
 
+	/** De-emphasizes the row when another entry is the active one. */
+	muted?: boolean;
+
 	/** Ranking metric for the `table` layout (sorted descending). */
 	sortValue: number;
 

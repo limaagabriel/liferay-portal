@@ -192,8 +192,16 @@ export default function LineSeries<T>({
 	x,
 	y,
 }: LineSeriesProps<T>) {
-	const {data, focus, registerSeries, scale, scheme, setFocus} =
-		useChartContainer<T>();
+	const {
+		active,
+		data,
+		focus,
+		registerSeries,
+		scale,
+		scheme,
+		setActive,
+		setFocus,
+	} = useChartContainer<T>();
 
 	const pointRefs = useRef<Array<SVGCircleElement | null>>([]);
 
@@ -261,6 +269,48 @@ export default function LineSeries<T>({
 			}
 		},
 		[focus, id, setFocus]
+	);
+
+	/**
+	 * Publishes the point's marker position (`point.x`/`point.y`) as the
+	 * active datum's anchor — the point a tooltip would later attach to.
+	 */
+	const activatePoint = useCallback(
+		(point: LineSeriesPoint) => {
+			setActive({
+				category: point.category,
+				index: point.index,
+				position: {x: point.x, y: point.y},
+				seriesId: id,
+				value: point.value,
+			});
+		},
+		[id, setActive]
+	);
+
+	const deactivatePoint = useCallback(
+		(index: number) => {
+			if (active?.seriesId === id && active?.index === index) {
+				setActive(null);
+			}
+		},
+		[active, id, setActive]
+	);
+
+	/**
+	 * Clears the active datum on pointer leave only when the point is not also
+	 * keyboard-focused, so moving the mouse off a point the user is still
+	 * focused on keeps the highlight the focus ring is showing.
+	 */
+	const onMouseLeavePoint = useCallback(
+		(index: number) => {
+			if (pointRefs.current[index] === document.activeElement) {
+				return;
+			}
+
+			deactivatePoint(index);
+		},
+		[deactivatePoint]
 	);
 
 	const onKeyDownPoint = useCallback(
@@ -356,11 +406,19 @@ export default function LineSeries<T>({
 							className="charts-line-series__point"
 							cx={point.x}
 							cy={point.y}
-							onBlur={() => onBlurPoint(point.index)}
-							onFocus={() => onFocusPoint(point.index)}
+							onBlur={() => {
+								onBlurPoint(point.index);
+								deactivatePoint(point.index);
+							}}
+							onFocus={() => {
+								onFocusPoint(point.index);
+								activatePoint(point);
+							}}
 							onKeyDown={(event) =>
 								onKeyDownPoint(point.index, event)
 							}
+							onMouseEnter={() => activatePoint(point)}
+							onMouseLeave={() => onMouseLeavePoint(point.index)}
 							r={POINT_HIT_RADIUS}
 							ref={(element) => setPointRef(point.index, element)}
 							role="img"
