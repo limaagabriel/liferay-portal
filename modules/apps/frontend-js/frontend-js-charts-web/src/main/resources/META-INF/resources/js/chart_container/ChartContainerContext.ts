@@ -35,6 +35,15 @@ export interface ChartSeriesFocus {
 export interface ChartActiveDatum {
 	category: string;
 	index: number;
+
+	/**
+	 * The publishing series' own display name. Distinct from a per-bar
+	 * `ChartSeriesMeta.label`, which `colorByCategory` bars overload with
+	 * `category: value` for the Legend — so a tooltip must read the name from
+	 * here, not from the matched series metadata.
+	 */
+	label: string;
+
 	position: {x: number; y: number};
 	seriesId: string;
 	value: number;

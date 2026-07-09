@@ -280,12 +280,13 @@ export default function LineSeries<T>({
 			setActive({
 				category: point.category,
 				index: point.index,
+				label,
 				position: {x: point.x, y: point.y},
 				seriesId: id,
 				value: point.value,
 			});
 		},
-		[id, setActive]
+		[id, label, setActive]
 	);
 
 	const deactivatePoint = useCallback(

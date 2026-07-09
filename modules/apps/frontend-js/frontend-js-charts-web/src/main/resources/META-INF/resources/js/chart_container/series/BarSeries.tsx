@@ -494,12 +494,13 @@ export default function BarSeries<T>({
 			setActive({
 				category: bar.category,
 				index: bar.index,
+				label,
 				position: resolveBarAnchor(bar, numericAxisKey),
 				seriesId: resolveActiveSeriesId(id, colorByCategory, bar.index),
 				value: bar.value,
 			});
 		},
-		[colorByCategory, id, numericAxisKey, setActive]
+		[colorByCategory, id, label, numericAxisKey, setActive]
 	);
 
 	const deactivateBar = useCallback(

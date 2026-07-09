@@ -14,6 +14,8 @@ export {ChartPlotProps} from './chart_container/ChartPlot';
 export {default as Grid} from './chart_container/Grid';
 export {default as Legend} from './chart_container/Legend';
 export {LegendProps} from './chart_container/Legend';
+export {default as Tooltip} from './chart_container/Tooltip';
+export {TooltipPlacement, TooltipProps} from './chart_container/Tooltip';
 export {default as BarSeries} from './chart_container/series/BarSeries';
 export {BarSeriesProps} from './chart_container/series/BarSeries';
 
