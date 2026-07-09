@@ -18,6 +18,9 @@ import type {ChartScheme} from '../types';
 const MIN_BAR_WIDTH = 4;
 const BAR_WIDTH_RATIO = 0.6;
 const BAR_RX = 2;
+const INLINE_BAR_THICKNESS = 8;
+const VALUE_LABEL_OFFSET = 6;
+const VALUE_LABEL_TEXT_HEIGHT = 12;
 
 /**
  * Shades of blue for the `blue` scheme, mirroring `LineSeries`'s own
@@ -39,6 +42,14 @@ export interface BarSeriesProps<T> {
 	color?: string;
 
 	/**
+	 * Gives each bar its own hue from `getCategoricalColors`, indexed by the
+	 * bar's position, instead of one color for the whole series. Also
+	 * switches legend registration from a single series row to one row per
+	 * bar (category + color + value). Default `false`.
+	 */
+	colorByCategory?: boolean;
+
+	/**
 	 * Position in the series' render order, driving the cycled color when
 	 * `color` is not set.
 	 */
@@ -52,6 +63,29 @@ export interface BarSeriesProps<T> {
 
 	label: string;
 
+	/** Rounds the bar into a pill (radius equal to half its thickness). */
+	rounded?: boolean;
+
+	/**
+	 * Draws each bar's formatted value as decorative `<text>` near the bar's
+	 * tip. `aria-hidden`, since the same value already ships in the bar's
+	 * `aria-label`. Default `false`.
+	 */
+	showValues?: boolean;
+
+	/**
+	 * Bar thickness preset. `default` bars fill `BAR_WIDTH_RATIO` of their
+	 * band; `inline` flattens every bar to `INLINE_BAR_THICKNESS`.
+	 */
+	size?: 'default' | 'inline';
+
+	/**
+	 * Draws a faint track rect behind each bar, spanning the full plot
+	 * extent along the numeric axis, so the bar reads as "progress out of
+	 * total". Default `false`.
+	 */
+	track?: boolean;
+
 	x: (item: T) => string;
 	y: (item: T) => number;
 }
@@ -61,6 +95,19 @@ interface BarSeriesBar {
 	height: number;
 	index: number;
 	value: number;
+	width: number;
+	x: number;
+	y: number;
+}
+
+interface BarSeriesValueLabel {
+	anchor: 'end' | 'middle' | 'start';
+	x: number;
+	y: number;
+}
+
+interface BarSeriesTrackRect {
+	height: number;
 	width: number;
 	x: number;
 	y: number;
@@ -80,6 +127,86 @@ function computeExtent<T>(
 }
 
 /**
+ * Resolves the shared bar thickness for the whole series: `inline` flattens
+ * every bar to `INLINE_BAR_THICKNESS` (the old progress-bar-row behavior),
+ * `default` keeps the current band-ratio width.
+ */
+function resolveBarThickness(
+	size: 'default' | 'inline',
+	bandSize: number
+): number {
+	if (size === 'inline') {
+		return INLINE_BAR_THICKNESS;
+	}
+
+	return Math.max(MIN_BAR_WIDTH, bandSize * BAR_WIDTH_RATIO);
+}
+
+function resolveBarRx(rounded: boolean, barThickness: number): number {
+	return rounded ? barThickness / 2 : BAR_RX;
+}
+
+/**
+ * Positions a bar's decorative value label at its tip (the end farthest
+ * from the baseline), offset away from the bar so it never overlaps it.
+ * Negative bars grow the other direction, so the label flips sides with
+ * the bar's sign instead of always sitting above/right of it.
+ */
+function resolveValueLabel(
+	bar: BarSeriesBar,
+	numericAxisKey: ChartNumericAxisKey
+): BarSeriesValueLabel {
+	const isPositive = bar.value >= 0;
+
+	if (numericAxisKey === 'x') {
+		return {
+			anchor: isPositive ? 'start' : 'end',
+			x: isPositive
+				? bar.x + bar.width + VALUE_LABEL_OFFSET
+				: bar.x - VALUE_LABEL_OFFSET,
+			y: bar.y + bar.height / 2,
+		};
+	}
+
+	return {
+		anchor: 'middle',
+		x: bar.x + bar.width / 2,
+		y: isPositive
+			? bar.y - VALUE_LABEL_OFFSET
+			: bar.y + bar.height + VALUE_LABEL_TEXT_HEIGHT,
+	};
+}
+
+/**
+ * Sizes a bar's background track to span the full plot extent along the
+ * numeric axis while matching the bar's own position and thickness along
+ * the categorical axis, so it reads as "progress out of total" in either
+ * orientation.
+ */
+function resolveTrackRect(
+	bar: BarSeriesBar,
+	scale: ChartSymmetricScale,
+	numericAxisKey: ChartNumericAxisKey,
+	barThickness: number
+): BarSeriesTrackRect {
+	if (numericAxisKey === 'x') {
+		return {
+			height: barThickness,
+			width: scale.plot.width,
+			x: scale.plot.x,
+			y: bar.y,
+		};
+	}
+
+	return {
+		height: scale.plot.height,
+		width: barThickness,
+		x: bar.x,
+		y: scale.plot.y,
+	};
+}
+
+/**
  * Projects `data` onto the container's shared `scale`: a band center on the
  * categorical axis and the bar's span from the numeric axis' baseline to the
  * value's projected position on the numeric axis. Negative values land on
@@ -96,13 +223,9 @@ function computeGeometry<T>(
 	x: (item: T) => string,
 	y: (item: T) => number,
 	scale: ChartSymmetricScale,
-	numericAxisKey: ChartNumericAxisKey
+	numericAxisKey: ChartNumericAxisKey,
+	barThickness: number
 ): Array<BarSeriesBar | null> {
-	const barThickness = Math.max(
-		MIN_BAR_WIDTH,
-		scale.bandSize * BAR_WIDTH_RATIO
-	);
-
 	return data.map((item, index): BarSeriesBar | null => {
 		const value = y(item);
 
@@ -168,14 +291,23 @@ function resolveColor(
  * The per-bar rect mirrors `BarChartBar`'s a11y idiom (`role="img"`,
  * `aria-label`, roving `tabIndex`) rather than importing it: `BarChartBar`
  * couples the rect to `BarLayout`'s track/label/value satellites, which this
- * series excludes (axis and category labels ship in a later step).
+ * series recreates directly (`track`, `showValues`) instead of reimporting.
+ *
+ * Per-bar category text is deliberately not offered alongside `showValues`:
+ * the shared `Axis` already renders one category label per band, so a
+ * second copy on every bar would just duplicate it.
  */
 export default function BarSeries<T>({
 	color,
+	colorByCategory = false,
 	colorIndex = 0,
 	format = String,
 	id,
 	label,
+	rounded = false,
+	showValues = false,
+	size = 'default',
+	track = false,
 	x,
 	y,
 }: BarSeriesProps<T>) {
@@ -186,27 +318,89 @@ export default function BarSeries<T>({
 
 	const resolvedColor = resolveColor(scheme, colorIndex, color);
 	const numericAxisKey = getNumericAxisKey(xAxis, yAxis);
+	const barThickness = resolveBarThickness(size, scale.bandSize);
+	const barRx = resolveBarRx(rounded, barThickness);
 
-	useEffect(
-		() =>
-			registerSeries({
+	/**
+	 * Memo key: `data`, the `x`/`y` accessor references, `scale`, and
+	 * `barThickness` (derived from `size` and `scale.bandSize`). Pass stable
+	 * accessor identities from the consumer, or this recomputes every render.
+	 */
+	const bars = useMemo(
+		() => computeGeometry(data, x, y, scale, numericAxisKey, barThickness),
+		[data, x, y, scale, numericAxisKey, barThickness]
+	);
+
+	const categoricalColors = useMemo(
+		() => (colorByCategory ? getCategoricalColors(data.length) : null),
+		[colorByCategory, data.length]
+	);
+
+	/**
+	 * Non-`colorByCategory` mode registers the series as a single legend
+	 * row, unchanged from before. `colorByCategory` mode instead registers
+	 * one row per finite datum (`${id}-${index}`), each carrying its own
+	 * category/value in `label` and its own hue in `color`, so the shared
+	 * `Legend` lists one entry per bar. The registration channel itself
+	 * (`registerSeries`, keyed by `id` in a `Map`) already supports several
+	 * entries from one series without any change to it: calling it more
+	 * than once, and unregistering every call on cleanup, is enough.
+	 *
+	 * Deliberately derived from `data`/`x`/`y` here, not from the rendered
+	 * `bars` (which come from `scale`): `scale` is itself derived from every
+	 * registered series' extent, so an effect keyed on `bars` would
+	 * re-register on every `scale` change that registering causes, looping
+	 * forever.
+	 */
+	useEffect(() => {
+		if (!colorByCategory || !categoricalColors) {
+			return registerSeries({
 				color: resolvedColor,
 				extent: computeExtent(data, y),
 				id,
 				label,
-			}),
-		[data, id, label, registerSeries, resolvedColor, y]
-	);
+			});
+		}
 
-	/**
-	 * Memo key: `data`, the `x`/`y` accessor references, and `scale` (band
-	 * width derives from `scale.bandSize`). Pass stable accessor identities
-	 * from the consumer, or this recomputes every render.
-	 */
-	const bars = useMemo(
-		() => computeGeometry(data, x, y, scale, numericAxisKey),
-		[data, x, y, scale, numericAxisKey]
-	);
+		const unregisters = data.reduce<Array<() => void>>(
+			(accumulator, item, index) => {
+				const value = y(item);
+
+				if (!Number.isFinite(value)) {
+					return accumulator;
+				}
+
+				accumulator.push(
+					registerSeries({
+						color: categoricalColors[index] ?? resolvedColor,
+						extent: {max: value, min: value},
+						id: `${id}-${index}`,
+						label: `${x(item)}: ${format(value)}`,
+					})
+				);
+
+				return accumulator;
+			},
+			[]
+		);
+
+		return () => {
+			for (const unregister of unregisters) {
+				unregister();
+			}
+		};
+	}, [
+		categoricalColors,
+		colorByCategory,
+		data,
+		format,
+		id,
+		label,
+		registerSeries,
+		resolvedColor,
+		x,
+		y,
+	]);
 
 	const finiteIndexes = useMemo(
 		() =>
@@ -296,28 +490,69 @@ export default function BarSeries<T>({
 
 				const isFocused = focusedIndex === bar.index;
 				const isTabbable = tabbableIndex === bar.index;
+				const barColor = categoricalColors?.[bar.index];
+				const valueLabel = showValues
+					? resolveValueLabel(bar, numericAxisKey)
+					: null;
+				const trackRect = track
+					? resolveTrackRect(bar, scale, numericAxisKey, barThickness)
+					: null;
 
 				return (
-					<rect
-						aria-label={`${label}, ${bar.category}: ${format(
-							bar.value
-						)}`}
-						className={`charts-bar-series__bar${
-							isFocused ? ' is-focused' : ''
-						}`}
-						height={bar.height}
-						key={bar.index}
-						onBlur={() => onBlurBar(bar.index)}
-						onFocus={() => onFocusBar(bar.index)}
-						onKeyDown={(event) => onKeyDownBar(bar.index, event)}
-						ref={(element) => setBarRef(bar.index, element)}
-						role="img"
-						rx={BAR_RX}
-						tabIndex={isTabbable ? 0 : -1}
-						width={bar.width}
-						x={bar.x}
-						y={bar.y}
-					/>
+					<g key={bar.index}>
+						{trackRect && (
+							<rect
+								aria-hidden="true"
+								className="charts-bar-series__bar-track"
+								height={trackRect.height}
+								rx={barRx}
+								width={trackRect.width}
+								x={trackRect.x}
+								y={trackRect.y}
+							/>
+						)}
+
+						<rect
+							aria-label={`${label}, ${bar.category}: ${format(
+								bar.value
+							)}`}
+							className={`charts-bar-series__bar${
+								isFocused ? ' is-focused' : ''
+							}`}
+							height={bar.height}
+							onBlur={() => onBlurBar(bar.index)}
+							onFocus={() => onFocusBar(bar.index)}
+							onKeyDown={(event) =>
+								onKeyDownBar(bar.index, event)
+							}
+							ref={(element) => setBarRef(bar.index, element)}
+							role="img"
+							rx={barRx}
+							style={
+								barColor
+									? ({
+											'--charts-bar-color': barColor,
+										} as React.CSSProperties)
+									: undefined
+							}
+							tabIndex={isTabbable ? 0 : -1}
+							width={bar.width}
+							x={bar.x}
+							y={bar.y}
+						/>
+
+						{valueLabel && (
+							<text
+								aria-hidden="true"
+								className="charts-bar-series__value"
+								textAnchor={valueLabel.anchor}
+								x={valueLabel.x}
+								y={valueLabel.y}
+							>
+								{format(bar.value)}
+							</text>
+						)}
+					</g>
 				);
 			})}
 		</g>

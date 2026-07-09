@@ -26,4 +26,19 @@
 		outline: 2px solid $primary-d2;
 		outline-offset: 2px;
 	}
+
+	// Optional gray track behind the bar. Spans the full plot length so the
+	// row reads as "progress out of total".
+
+	&__bar-track {
+		fill: $light-d1;
+		pointer-events: none;
+	}
+
+	&__value {
+		fill: $dark;
+		font-size: 0.75rem;
+		font-variant-numeric: tabular-nums;
+		font-weight: 700;
+	}
 }
