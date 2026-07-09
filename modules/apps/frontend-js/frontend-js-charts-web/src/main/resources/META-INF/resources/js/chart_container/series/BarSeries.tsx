@@ -7,11 +7,12 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 
 import {getCategoricalColors} from '../../palette';
 import {useChartContainer} from '../ChartContainerContext';
+import {getNumericAxisKey} from '../plot/scale';
 
 import '../../../css/BarSeries.scss';
 
 import type {ChartSeriesExtent} from '../ChartContainerContext';
-import type {ChartSymmetricScale} from '../plot/scale';
+import type {ChartNumericAxisKey, ChartSymmetricScale} from '../plot/scale';
 import type {ChartScheme} from '../types';
 
 const MIN_BAR_WIDTH = 4;
@@ -79,19 +80,28 @@ function computeExtent<T>(
 }
 
 /**
- * Projects `data` onto the container's shared `scale`: x per index (band
- * center) and the bar's vertical span from the numeric axis' baseline to the
- * value's projected y. Negative values land on the other side of the
- * baseline instead of being clamped, since the unified Y domain already
- * carries them. Bars with a non-finite `y` are dropped.
+ * Projects `data` onto the container's shared `scale`: a band center on the
+ * categorical axis and the bar's span from the numeric axis' baseline to the
+ * value's projected position on the numeric axis. Negative values land on
+ * the other side of the baseline instead of being clamped, since the unified
+ * domain already carries them. Bars with a non-finite value are dropped.
+ *
+ * `numericAxisKey` picks which axis grows the bar: `'y'` produces the
+ * vertical bars `BarChart` has always rendered (band on X, height on Y);
+ * `'x'` produces horizontal bars (band on Y, width on X) for a chart whose
+ * `xAxis` is numeric and `yAxis` categorical.
  */
 function computeGeometry<T>(
 	data: readonly T[],
 	x: (item: T) => string,
 	y: (item: T) => number,
-	scale: ChartSymmetricScale
+	scale: ChartSymmetricScale,
+	numericAxisKey: ChartNumericAxisKey
 ): Array<BarSeriesBar | null> {
-	const barWidth = Math.max(MIN_BAR_WIDTH, scale.bandSize * BAR_WIDTH_RATIO);
+	const barThickness = Math.max(
+		MIN_BAR_WIDTH,
+		scale.bandSize * BAR_WIDTH_RATIO
+	);
 
 	return data.map((item, index): BarSeriesBar | null => {
 		const value = y(item);
@@ -100,16 +110,33 @@ function computeGeometry<T>(
 			return null;
 		}
 
-		const centerX = scale.xPosition(index);
+		const category = x(item);
+
+		if (numericAxisKey === 'x') {
+			const bandCenter = scale.yPosition(index);
+			const valueX = scale.xPosition(value);
+
+			return {
+				category,
+				height: barThickness,
+				index,
+				value,
+				width: Math.abs(valueX - scale.baseline),
+				x: Math.min(valueX, scale.baseline),
+				y: bandCenter - barThickness / 2,
+			};
+		}
+
+		const bandCenter = scale.xPosition(index);
 		const valueY = scale.yPosition(value);
 
 		return {
-			category: x(item),
+			category,
 			height: Math.abs(valueY - scale.baseline),
 			index,
 			value,
-			width: barWidth,
-			x: centerX - barWidth / 2,
+			width: barThickness,
+			x: bandCenter - barThickness / 2,
 			y: Math.min(valueY, scale.baseline),
 		};
 	});
@@ -152,12 +179,13 @@ export default function BarSeries<T>({
 	x,
 	y,
 }: BarSeriesProps<T>) {
-	const {data, focus, registerSeries, scale, scheme, setFocus} =
+	const {data, focus, registerSeries, scale, scheme, setFocus, xAxis, yAxis} =
 		useChartContainer<T>();
 
 	const barRefs = useRef<Array<SVGRectElement | null>>([]);
 
 	const resolvedColor = resolveColor(scheme, colorIndex, color);
+	const numericAxisKey = getNumericAxisKey(xAxis, yAxis);
 
 	useEffect(
 		() =>
@@ -176,8 +204,8 @@ export default function BarSeries<T>({
 	 * from the consumer, or this recomputes every render.
 	 */
 	const bars = useMemo(
-		() => computeGeometry(data, x, y, scale),
-		[data, x, y, scale]
+		() => computeGeometry(data, x, y, scale, numericAxisKey),
+		[data, x, y, scale, numericAxisKey]
 	);
 
 	const finiteIndexes = useMemo(
@@ -227,6 +255,7 @@ export default function BarSeries<T>({
 			let handled = true;
 
 			switch (event.key) {
+				case 'ArrowDown':
 				case 'ArrowRight':
 					focusBarAt(
 						finiteIndexes[
@@ -235,6 +264,7 @@ export default function BarSeries<T>({
 					);
 					break;
 				case 'ArrowLeft':
+				case 'ArrowUp':
 					focusBarAt(finiteIndexes[Math.max(position - 1, 0)]);
 					break;
 				case 'Home':

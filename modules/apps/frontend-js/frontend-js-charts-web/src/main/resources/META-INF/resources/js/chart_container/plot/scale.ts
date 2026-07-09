@@ -199,6 +199,32 @@ export function getAxisPosition(
 	return getNumericAxisPosition(axis, geometry, valueMin, valueMax);
 }
 
+export type ChartNumericAxisKey = 'x' | 'y';
+
+/**
+ * Reports which of the two axis configs carries the numeric domain, so
+ * `BarSeries`, `Axis`, and `Grid` derive orientation from the same source
+ * instead of each guessing at a hardcoded axis or a separate orientation
+ * prop. `'y'` is the vertical chart (bars grow up); `'x'` is horizontal
+ * (bars grow right).
+ */
+export function getNumericAxisKey(
+	xAxis: ChartAxisConfig,
+	yAxis: ChartAxisConfig
+): ChartNumericAxisKey {
+	if (xAxis.type === 'numeric' && yAxis.type === 'categorical') {
+		return 'x';
+	}
+
+	if (yAxis.type === 'numeric' && xAxis.type === 'categorical') {
+		return 'y';
+	}
+
+	throw new Error(
+		'Expected exactly one numeric axis and one categorical axis'
+	);
+}
+
 function pickNumericAxisPosition(
 	xAxisPosition: ChartAxisPosition,
 	yAxisPosition: ChartAxisPosition
