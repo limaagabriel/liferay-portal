@@ -4,43 +4,9 @@
  */
 
 import {
-	getChartScale,
 	getSymmetricChartScale,
 	niceTickStep,
 } from '../../../src/main/resources/META-INF/resources/js/chart_container/plot/scale';
-
-describe('getChartScale', () => {
-	it('centers each category on its band instead of anchoring to the band edge', () => {
-		const scale = getChartScale({
-			height: 100,
-			padding: {bottom: 0, left: 20, right: 0, top: 0},
-			valueMax: 10,
-			valueMin: 0,
-			width: 220,
-			xAxis: {categoryCount: 4, type: 'categorical'},
-			yAxis: {tickCount: 5, type: 'numeric'},
-		});
-
-		const bandSize = scale.plot.width / 4;
-
-		expect(scale.xForIndex(0)).toBeCloseTo(20 + bandSize / 2);
-		expect(scale.xForIndex(0)).not.toBeCloseTo(20);
-	});
-
-	it('extends the y domain below zero when the data has negative values', () => {
-		const scale = getChartScale({
-			height: 100,
-			padding: {bottom: 0, left: 0, right: 0, top: 0},
-			valueMax: 10,
-			valueMin: -5,
-			width: 100,
-			xAxis: {categoryCount: 3, type: 'categorical'},
-			yAxis: {tickCount: 5, type: 'numeric'},
-		});
-
-		expect(scale.yDomain.min).toBeLessThan(0);
-	});
-});
 
 describe('niceTickStep', () => {
 	it('lands on a value from the {1, 2, 2.5, 5} x 10^k family', () => {
@@ -59,28 +25,24 @@ describe('getSymmetricChartScale', () => {
 		yAxis: {tickCount: 5, type: 'numeric'} as const,
 	};
 
-	it('matches xForIndex for a categorical x axis', () => {
-		const scale = getChartScale(verticalOptions);
-		const symmetricScale = getSymmetricChartScale(verticalOptions);
+	it('centers each category on its band instead of anchoring to the band edge', () => {
+		const scale = getSymmetricChartScale(verticalOptions);
+		const bandSize = scale.plot.width / 4;
 
-		[0, 1, 2, 3].forEach((index) => {
-			expect(symmetricScale.xPosition(index)).toBeCloseTo(
-				scale.xForIndex(index)
-			);
-		});
+		expect(scale.xPosition(0)).toBeCloseTo(20 + bandSize / 2);
+		expect(scale.xPosition(0)).not.toBeCloseTo(20);
 	});
 
-	it('matches yForValue for a numeric y axis across positive, negative, and zero values', () => {
-		const options = {...verticalOptions, valueMin: -5};
-
-		const scale = getChartScale(options);
-		const symmetricScale = getSymmetricChartScale(options);
-
-		[-5, -2.5, 0, 5, 10].forEach((value) => {
-			expect(symmetricScale.yPosition(value)).toBeCloseTo(
-				scale.yForValue(value)
-			);
+	it('extends the y domain below zero when the data has negative values', () => {
+		const scale = getSymmetricChartScale({
+			...verticalOptions,
+			padding: {bottom: 0, left: 0, right: 0, top: 0},
+			valueMin: -5,
+			width: 100,
+			xAxis: {categoryCount: 3, type: 'categorical'},
 		});
+
+		expect(scale.ticks[0].value).toBeLessThan(0);
 	});
 
 	it('supports a swapped configuration with a numeric x axis and categorical y axis', () => {

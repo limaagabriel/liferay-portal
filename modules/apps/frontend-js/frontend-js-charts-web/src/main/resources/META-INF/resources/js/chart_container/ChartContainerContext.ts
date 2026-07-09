@@ -5,12 +5,8 @@
 
 import {createContext, useContext} from 'react';
 
-import type {ChartPlotPadding, ChartScale} from './plot/scale';
-import type {
-	ChartCategoricalAxisConfig,
-	ChartNumericAxisConfig,
-	ChartScheme,
-} from './types';
+import type {ChartPlotPadding, ChartSymmetricScale} from './plot/scale';
+import type {ChartAxisConfig, ChartScheme} from './types';
 
 export interface ChartContainerDims {
 	height: number;
@@ -53,12 +49,12 @@ export interface ChartContainerContextValue<T> {
 	 * unregister callback for the series' cleanup.
 	 */
 	registerSeries: (meta: ChartSeriesMeta) => () => void;
-	scale: ChartScale;
+	scale: ChartSymmetricScale;
 	scheme: ChartScheme;
 	series: ChartSeriesMeta[];
 	setFocus: (focus: ChartSeriesFocus | null) => void;
-	xAxis: ChartCategoricalAxisConfig;
-	yAxis: ChartNumericAxisConfig;
+	xAxis: ChartAxisConfig;
+	yAxis: ChartAxisConfig;
 }
 
 export const ChartContainerContext =

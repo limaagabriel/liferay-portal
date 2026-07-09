@@ -26,8 +26,8 @@ export default function Grid() {
 					key={tick.value}
 					x1={scale.plot.x}
 					x2={scale.plot.x + scale.plot.width}
-					y1={tick.y}
-					y2={tick.y}
+					y1={tick.position}
+					y2={tick.position}
 				/>
 			))}
 		</g>

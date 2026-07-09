@@ -16,11 +16,6 @@ export interface ChartPlotPadding {
 	top: number;
 }
 
-export interface ChartScaleTick {
-	value: number;
-	y: number;
-}
-
 export interface ChartAxisGeometry {
 	extent: number;
 	offset: number;
@@ -58,24 +53,6 @@ export interface ChartSymmetricScale {
 	ticks: ChartAxisTick[];
 	xPosition: (value: number) => number;
 	yPosition: (value: number) => number;
-}
-
-export interface ChartScale {
-	plot: {height: number; width: number; x: number; y: number};
-	ticks: ChartScaleTick[];
-	xForIndex: (index: number) => number;
-	yDomain: {max: number; min: number};
-	yForValue: (value: number) => number;
-}
-
-interface Options {
-	height: number;
-	padding: ChartPlotPadding;
-	valueMax: number;
-	valueMin: number;
-	width: number;
-	xAxis: ChartCategoricalAxisConfig;
-	yAxis: ChartNumericAxisConfig;
 }
 
 interface SymmetricOptions {
@@ -155,58 +132,6 @@ function getNumericDomain(
 		domainMin,
 		domainRange: domainMax - domainMin,
 		step,
-	};
-}
-
-/**
- * Computes the band-x / numeric-y coordinate scale every chart type projects
- * its geometry onto: x positions center each category on its band (unlike an
- * edge-anchored point scale), and y spans a single numeric domain that
- * extends below zero for negative data instead of clamping at a baseline.
- */
-export function getChartScale({
-	height,
-	padding,
-	valueMax,
-	valueMin,
-	width,
-	xAxis,
-	yAxis,
-}: Options): ChartScale {
-	const plotWidth = Math.max(0, width - padding.left - padding.right);
-	const plotHeight = Math.max(0, height - padding.top - padding.bottom);
-
-	const bandSize = plotWidth / Math.max(1, xAxis.categoryCount);
-
-	const xForIndex = (index: number) =>
-		padding.left + index * bandSize + bandSize / 2;
-
-	const {domainMax, domainMin, domainRange, step} = getNumericDomain(
-		valueMin,
-		valueMax,
-		yAxis.tickCount
-	);
-
-	const yForValue = (value: number) =>
-		padding.top + plotHeight * (1 - (value - domainMin) / domainRange);
-
-	const ticks: ChartScaleTick[] = [];
-
-	for (let value = domainMin; value <= domainMax + step / 2; value += step) {
-		ticks.push({value, y: yForValue(value)});
-	}
-
-	return {
-		plot: {
-			height: plotHeight,
-			width: plotWidth,
-			x: padding.left,
-			y: padding.top,
-		},
-		ticks,
-		xForIndex,
-		yDomain: {max: domainMax, min: domainMin},
-		yForValue,
 	};
 }
 

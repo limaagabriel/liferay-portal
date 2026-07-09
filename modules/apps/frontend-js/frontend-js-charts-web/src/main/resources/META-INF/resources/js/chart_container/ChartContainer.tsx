@@ -14,19 +14,22 @@ import {
 	ChartSeriesFocus,
 	ChartSeriesMeta,
 } from './ChartContainerContext';
-import {getChartScale} from './plot/scale';
+import {getSymmetricChartScale} from './plot/scale';
 
 import type {ChartStateProps} from '../chart_state_wrapper/ChartState';
-import type {
-	ChartCategoricalAxisConfig,
-	ChartNumericAxisConfig,
-	ChartScheme,
-} from './types';
+import type {ChartAxisConfig, ChartScheme} from './types';
 
 const DEFAULT_DIMS: ChartContainerDims = {
 	height: 320,
 	padding: {bottom: 32, left: 48, right: 24, top: 16},
 	width: 640,
+};
+
+const DEFAULT_Y_TICK_COUNT = 5;
+
+const DEFAULT_Y_AXIS: ChartAxisConfig = {
+	tickCount: DEFAULT_Y_TICK_COUNT,
+	type: 'numeric',
 };
 
 const EMPTY_EXTENT: ChartSeriesExtent = {max: 0, min: 0};
@@ -37,8 +40,8 @@ export interface ChartContainerProps<T> extends ChartStateProps {
 	data: readonly T[];
 	dims?: Partial<ChartContainerDims>;
 	scheme?: ChartScheme;
-	xAxis: ChartCategoricalAxisConfig;
-	yAxis: ChartNumericAxisConfig;
+	xAxis?: ChartAxisConfig;
+	yAxis?: ChartAxisConfig;
 }
 
 function unifyExtents(
@@ -66,8 +69,8 @@ export default function ChartContainer<T>({
 	fallbackError,
 	loading,
 	scheme = 'blue',
-	xAxis,
-	yAxis,
+	xAxis: xAxisProp,
+	yAxis: yAxisProp,
 }: ChartContainerProps<T>) {
 	const [seriesById, setSeriesById] = useState<Map<string, ChartSeriesMeta>>(
 		() => new Map()
@@ -87,9 +90,23 @@ export default function ChartContainer<T>({
 
 	const series = useMemo(() => Array.from(seriesById.values()), [seriesById]);
 
+	const xAxis = useMemo<ChartAxisConfig>(
+		() =>
+			xAxisProp ?? {
+				categoryCount: categories.length,
+				type: 'categorical',
+			},
+		[xAxisProp, categories.length]
+	);
+
+	const yAxis = useMemo<ChartAxisConfig>(
+		() => yAxisProp ?? DEFAULT_Y_AXIS,
+		[yAxisProp]
+	);
+
 	const scale = useMemo(
 		() =>
-			getChartScale({
+			getSymmetricChartScale({
 				height: dims.height,
 				padding: dims.padding,
 				valueMax: valueExtent.max,

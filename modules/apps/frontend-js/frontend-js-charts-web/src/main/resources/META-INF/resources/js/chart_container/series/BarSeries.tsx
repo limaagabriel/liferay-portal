@@ -11,7 +11,7 @@ import {useChartContainer} from '../ChartContainerContext';
 import '../../../css/BarSeries.scss';
 
 import type {ChartSeriesExtent} from '../ChartContainerContext';
-import type {ChartScale} from '../plot/scale';
+import type {ChartSymmetricScale} from '../plot/scale';
 import type {ChartScheme} from '../types';
 
 const MIN_BAR_WIDTH = 4;
@@ -80,21 +80,18 @@ function computeExtent<T>(
 
 /**
  * Projects `data` onto the container's shared `scale`: x per index (band
- * center) and the bar's vertical span from the y=0 baseline to the value's
- * projected y. Negative values land on the other side of the baseline
- * instead of being clamped, since the unified Y domain already carries them.
- * Bars with a non-finite `y` are dropped.
+ * center) and the bar's vertical span from the numeric axis' baseline to the
+ * value's projected y. Negative values land on the other side of the
+ * baseline instead of being clamped, since the unified Y domain already
+ * carries them. Bars with a non-finite `y` are dropped.
  */
 function computeGeometry<T>(
 	data: readonly T[],
 	x: (item: T) => string,
 	y: (item: T) => number,
-	scale: ChartScale,
-	categoryCount: number
+	scale: ChartSymmetricScale
 ): Array<BarSeriesBar | null> {
-	const bandSize = scale.plot.width / Math.max(1, categoryCount);
-	const barWidth = Math.max(MIN_BAR_WIDTH, bandSize * BAR_WIDTH_RATIO);
-	const baseline = scale.yForValue(0);
+	const barWidth = Math.max(MIN_BAR_WIDTH, scale.bandSize * BAR_WIDTH_RATIO);
 
 	return data.map((item, index): BarSeriesBar | null => {
 		const value = y(item);
@@ -103,17 +100,17 @@ function computeGeometry<T>(
 			return null;
 		}
 
-		const centerX = scale.xForIndex(index);
-		const valueY = scale.yForValue(value);
+		const centerX = scale.xPosition(index);
+		const valueY = scale.yPosition(value);
 
 		return {
 			category: x(item),
-			height: Math.abs(valueY - baseline),
+			height: Math.abs(valueY - scale.baseline),
 			index,
 			value,
 			width: barWidth,
 			x: centerX - barWidth / 2,
-			y: Math.min(valueY, baseline),
+			y: Math.min(valueY, scale.baseline),
 		};
 	});
 }
@@ -155,7 +152,7 @@ export default function BarSeries<T>({
 	x,
 	y,
 }: BarSeriesProps<T>) {
-	const {data, focus, registerSeries, scale, scheme, setFocus, xAxis} =
+	const {data, focus, registerSeries, scale, scheme, setFocus} =
 		useChartContainer<T>();
 
 	const barRefs = useRef<Array<SVGRectElement | null>>([]);
@@ -174,13 +171,13 @@ export default function BarSeries<T>({
 	);
 
 	/**
-	 * Memo key: `data`, the `x`/`y` accessor references, `scale`, and the
-	 * shared category count (band width depends on it). Pass stable accessor
-	 * identities from the consumer, or this recomputes every render.
+	 * Memo key: `data`, the `x`/`y` accessor references, and `scale` (band
+	 * width derives from `scale.bandSize`). Pass stable accessor identities
+	 * from the consumer, or this recomputes every render.
 	 */
 	const bars = useMemo(
-		() => computeGeometry(data, x, y, scale, xAxis.categoryCount),
-		[data, x, y, scale, xAxis.categoryCount]
+		() => computeGeometry(data, x, y, scale),
+		[data, x, y, scale]
 	);
 
 	const finiteIndexes = useMemo(

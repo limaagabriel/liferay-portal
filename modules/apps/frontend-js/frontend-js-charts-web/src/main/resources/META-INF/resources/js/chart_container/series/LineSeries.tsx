@@ -17,7 +17,7 @@ import '../../../css/LineSeries.scss';
 
 import type {LineMarkerShape} from '../../line_chart/plot/markers';
 import type {ChartSeriesExtent} from '../ChartContainerContext';
-import type {ChartScale} from '../plot/scale';
+import type {ChartSymmetricScale} from '../plot/scale';
 import type {ChartScheme} from '../types';
 
 const MARKER_SIZE = 4;
@@ -137,7 +137,7 @@ function computeGeometry<T>(
 	data: readonly T[],
 	x: (item: T) => string,
 	y: (item: T) => number,
-	scale: ChartScale
+	scale: ChartSymmetricScale
 ): LineSeriesGeometry {
 	const points = data.map((item, index): LineSeriesPoint | null => {
 		const value = y(item);
@@ -150,8 +150,8 @@ function computeGeometry<T>(
 			category: x(item),
 			index,
 			value,
-			x: scale.xForIndex(index),
-			y: scale.yForValue(value),
+			x: scale.xPosition(index),
+			y: scale.yPosition(value),
 		};
 	});
 

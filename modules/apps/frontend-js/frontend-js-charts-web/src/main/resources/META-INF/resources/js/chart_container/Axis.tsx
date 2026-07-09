@@ -49,7 +49,7 @@ export default function Axis({yFormat = String}: AxisProps) {
 					key={tick.value}
 					textAnchor="end"
 					x={scale.plot.x - TICK_LABEL_GAP}
-					y={tick.y + TICK_LABEL_BASELINE_OFFSET}
+					y={tick.position + TICK_LABEL_BASELINE_OFFSET}
 				>
 					{yFormat(tick.value)}
 				</text>
@@ -60,7 +60,7 @@ export default function Axis({yFormat = String}: AxisProps) {
 					className="charts-axis__category-label"
 					key={`${category}-${index}`}
 					textAnchor="middle"
-					x={scale.xForIndex(index)}
+					x={scale.xPosition(index)}
 					y={dims.height - CATEGORY_LABEL_OFFSET}
 				>
 					{category}
