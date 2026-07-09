@@ -20,6 +20,9 @@ const BAR_DATA = [
 	{label: 'Referral', value: 900},
 ];
 
+// BarChart now wraps ChartState internally, but BarChartProps has no
+// error/loading passthrough, so the external wrapper below is kept.
+
 export function BarChartSamples() {
 	return (
 		<>
@@ -50,6 +53,18 @@ export function BarChartSamples() {
 					orientation="horizontal"
 					rounded
 					size="inline"
+					title="Sessions by channel"
+					track
+				/>
+			</SampleContainer>
+
+			<SampleContainer label="Categorical colors, rounded track, value labels">
+				<BarChart
+					className="mx-auto"
+					data={BAR_DATA}
+					legend="list"
+					rounded
+					scheme="categorical"
 					title="Sessions by channel"
 					track
 				/>

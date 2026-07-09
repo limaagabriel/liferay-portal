@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import type {ChartScheme} from '../chart_container/types';
+import type {ChartLegendLayout} from '../chart_legend/types';
 import type {LineMarkerShape} from './plot/markers';
 
 export interface LineSeries {
@@ -24,27 +26,6 @@ export interface LineSeries {
 	/** One value per category; `null` breaks the line (a data gap). */
 	values: Array<number | null>;
 }
-
-/**
- * Color scheme.
- *
- * - `blue` (default): every series uses a shade of `--primary`; series stay
- *   distinguishable through their marker shape and dash pattern (works in
- *   monochrome print too).
- * - `categorical`: each series gets a distinct hue from the Clay chart palette
- *   via `getCategoricalColors(count)`.
- */
-export type LineChartScheme = 'blue' | 'categorical';
-
-/**
- * Legend layout.
- *
- * - `list` (default): a compact marker/name row per series.
- * - `table`: a semantic detail `<table>` with rank, marker, series name, total
- *   and average.
- * - `none`: no legend, useful when the title already names the sole metric.
- */
-export type LineChartLegend = 'list' | 'none' | 'table';
 
 /**
  * Point tooltip placement.
@@ -75,13 +56,13 @@ export interface LineChartProps {
 	height?: number;
 
 	/** Legend layout. Default `list`. */
-	legend?: LineChartLegend;
+	legend?: ChartLegendLayout;
 
 	/** Point tooltip placement. Default `popover`. */
 	pointTooltip?: LineChartPointTooltip;
 
 	/** Color scheme. Default `blue`. */
-	scheme?: LineChartScheme;
+	scheme?: ChartScheme;
 
 	/** One entry per line. */
 	series: LineSeries[];

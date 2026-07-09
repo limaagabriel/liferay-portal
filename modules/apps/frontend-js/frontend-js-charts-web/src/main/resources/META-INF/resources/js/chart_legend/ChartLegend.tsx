@@ -26,7 +26,9 @@ interface Props {
 	onActivate: (id: number) => void;
 	onDeactivate: (id: number) => void;
 	onSelect: (id: number) => void;
-	titleId: string;
+
+	/** Omit to render the `table` layout without `aria-labelledby`. */
+	titleId?: string;
 }
 
 export default function ChartLegend({

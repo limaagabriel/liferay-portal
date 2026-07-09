@@ -107,7 +107,11 @@ describe('LineChart', () => {
 			/>
 		);
 
-		expect(screen.getAllByRole('columnheader')).toHaveLength(5);
+		// The shared `Legend` renders rank/visual/label columns only; it has
+		// no per-series total/average columns the way the old
+		// `LineChartLegend` did.
+
+		expect(screen.getAllByRole('columnheader')).toHaveLength(3);
 		expect(screen.getByRole('table')).toBeInTheDocument();
 
 		// One row header (scope="row") per series.

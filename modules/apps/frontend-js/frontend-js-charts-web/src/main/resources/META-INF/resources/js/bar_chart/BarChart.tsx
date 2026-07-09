@@ -4,18 +4,77 @@
  */
 
 import classNames from 'classnames';
-import React, {useCallback, useId, useMemo, useRef, useState} from 'react';
+import React, {useMemo} from 'react';
 
-import {getCategoricalColors} from '../palette';
-import {CHART_FAMILY_CLAY_PALETTE} from '../tokens';
-import BarChartLegend from './legend/BarChartLegend';
-import BarChartPlot from './plot/BarChartPlot';
-import {getBarChartGeometry} from './plot/geometry';
+import Axis from '../chart_container/Axis';
+import ChartContainer from '../chart_container/ChartContainer';
+import ChartPlot from '../chart_container/ChartPlot';
+import Grid from '../chart_container/Grid';
+import Legend from '../chart_container/Legend';
+import ComposableBarSeries from '../chart_container/series/BarSeries';
 
-import '../../css/BarChart.scss';
+import type {ChartAxisConfig} from '../chart_container/types';
+import type {BarChartProps, BarDatum} from './types';
 
-import type {BarChartProps} from './types';
+const NUMERIC_TICK_COUNT = 5;
 
+function barCategory(datum: BarDatum): string {
+	return datum.label;
+}
+
+function barValue(datum: BarDatum): number {
+	return datum.value;
+}
+
+/**
+ * Resolves the container's axis pair from `orientation`: `horizontal` puts
+ * the numeric domain on X and the band domain on Y (the mirror of the
+ * `vertical` default), matching `getNumericAxisKey`'s contract so
+ * `BarSeries`/`Axis`/`Grid` orient themselves with no separate prop of
+ * their own.
+ */
+function resolveAxes(
+	orientation: 'horizontal' | 'vertical',
+	categoryCount: number
+): {xAxis: ChartAxisConfig; yAxis: ChartAxisConfig} {
+	const numericAxis: ChartAxisConfig = {
+		tickCount: NUMERIC_TICK_COUNT,
+		type: 'numeric',
+	};
+	const categoricalAxis: ChartAxisConfig = {
+		categoryCount,
+		type: 'categorical',
+	};
+
+	if (orientation === 'horizontal') {
+		return {xAxis: numericAxis, yAxis: categoricalAxis};
+	}
+
+	return {xAxis: categoricalAxis, yAxis: numericAxis};
+}
+
+/**
+ * Thin facade over the composable chart primitives: maps the single
+ * `data: BarDatum[]` array onto one composable `BarSeries`.
+ *
+ * `orientation` drives the container's axis pair (see `resolveAxes`);
+ * `rounded`, `track`, and `size` pass straight through to `BarSeries`;
+ * `scheme: 'categorical'` maps to `colorByCategory`, giving each bar its own
+ * hue (and its own `Legend` row) instead of one color for the whole series,
+ * matching the old `BarChartLegend`'s per-bar rows; `showValues` is always
+ * on, restoring the old `BarChartBar`'s unconditional per-bar value text.
+ *
+ * Two legacy behaviors stay unwired:
+ *
+ * - Per-bar category `<text>` labels (the old `BarChartBar` drew one
+ *   alongside its value) are deliberately not restored: the shared `Axis`
+ *   already renders one category label per band, so a per-bar copy would
+ *   just duplicate it.
+ * - Hovering/selecting a `Legend` row no longer highlights or focuses the
+ *   matching bar (the old `BarChartLegend`'s `onActivate`/`onSelect`).
+ *   `Legend` itself only wires the chart-to-legend direction so far; the
+ *   reverse is deferred there, not something this facade can add on its own.
+ */
 export default function BarChart({
 	animated = true,
 	className,
@@ -31,131 +90,74 @@ export default function BarChart({
 	track = false,
 	width = 480,
 }: BarChartProps) {
-	const reactId = useId();
-	const titleId = `${reactId}-title`;
-	const descId = `${reactId}-desc`;
+	const categories = useMemo(() => data.map((datum) => datum.label), [data]);
 
-	const [focusIndex, setFocusIndex] = useState<number | null>(null);
-	const [hoverIndex, setHoverIndex] = useState<number | null>(null);
-	const activeIndex = focusIndex ?? hoverIndex;
-	const barRefs = useRef<Array<SVGRectElement | null>>([]);
-
-	const total = useMemo(
-		() => data.reduce((acc, d) => acc + Math.max(0, d.value), 0),
-		[data]
+	const {xAxis, yAxis} = useMemo(
+		() => resolveAxes(orientation, data.length),
+		[orientation, data.length]
 	);
 
-	const palette = useMemo(
-		() =>
-			scheme === 'categorical' ? getCategoricalColors(data.length) : null,
-		[scheme, data.length]
-	);
-
-	const colorFor = useCallback(
-		(index: number): string =>
-			palette
-				? palette[index] ?? CHART_FAMILY_CLAY_PALETTE.blue
-				: CHART_FAMILY_CLAY_PALETTE.blue,
-		[palette]
-	);
-
-	const geometry = useMemo(
-		() =>
-			getBarChartGeometry({
-				data,
-				height,
-				orientation,
-				rounded,
-				size,
-				width,
-			}),
-		[data, height, orientation, rounded, size, width]
-	);
-
-	const summaryText = useMemo(() => {
-		if (legend === 'table') {
-			return description ?? '';
+	const resolvedDescription = useMemo(() => {
+		if (description) {
+			return description;
 		}
 
-		return (
-			description ??
-			data
-				.map((d) => d.description ?? `${d.label}: ${d.value}`)
-				.join('. ')
-		);
-	}, [data, description, legend]);
+		return data
+			.map(
+				(datum) => datum.description ?? `${datum.label}: ${datum.value}`
+			)
+			.join('. ');
+	}, [data, description]);
 
-	const focusBar = useCallback((index: number) => {
-		barRefs.current[index]?.focus();
-	}, []);
-
-	const deactivate = useCallback(
-		(index: number) =>
-			setHoverIndex((current) => (current === index ? null : current)),
-		[]
-	);
-
-	const setBarRef = useCallback(
-		(index: number, element: SVGRectElement | null) => {
-			barRefs.current[index] = element;
-		},
-		[]
-	);
+	const showAxis = size !== 'inline';
 
 	return (
-		<figure
-			aria-describedby={descId}
-			aria-labelledby={titleId}
-			className={classNames(
-				'charts-bar-chart',
-				`charts-bar-chart--${orientation}`,
-				`charts-bar-chart--${scheme}`,
-				`charts-bar-chart--legend-${legend}`,
-				`charts-bar-chart--size-${size}`,
-				{
-					'charts-bar-chart--motion': animated,
-					'charts-bar-chart--rounded': rounded,
-					'charts-bar-chart--track': track,
-				},
-				className
-			)}
-			style={{maxWidth: width}}
+		<ChartContainer
+			animated={animated}
+			categories={categories}
+			data={data}
+			dims={{height, width}}
+			scheme={scheme}
+			xAxis={xAxis}
+			yAxis={yAxis}
 		>
-			<figcaption className="charts-bar-chart__title" id={titleId}>
-				{title}
-			</figcaption>
+			<ChartPlot
+				className={classNames(
+					'charts-bar-chart',
+					`charts-bar-chart--${orientation}`,
+					`charts-bar-chart--${scheme}`,
+					`charts-bar-chart--legend-${legend}`,
+					`charts-bar-chart--size-${size}`,
+					{
+						'charts-bar-chart--motion': animated,
+						'charts-bar-chart--rounded': rounded,
+						'charts-bar-chart--track': track,
+					},
+					className
+				)}
+				description={resolvedDescription}
+				style={{maxWidth: width}}
+				title={title}
+			>
+				{showAxis && <Grid />}
 
-			<p className="sr-only" id={descId}>
-				{summaryText}
-			</p>
+				{showAxis && <Axis />}
 
-			<BarChartPlot
-				data={data}
-				focusIndex={focusIndex}
-				geometry={geometry}
-				height={height}
-				hoverIndex={hoverIndex}
-				onFocus={setFocusIndex}
-				onHover={setHoverIndex}
-				onLeave={deactivate}
-				palette={palette}
-				setBarRef={setBarRef}
-				showAxis={size !== 'inline'}
-				track={track}
-				width={width}
-			/>
+				<ComposableBarSeries
+					colorByCategory={scheme === 'categorical'}
+					colorIndex={0}
+					id="bar-series"
+					label={title}
+					rounded={rounded}
+					showValues
+					size={size}
+					track={track}
+					x={barCategory}
+					y={barValue}
+				/>
+			</ChartPlot>
 
-			<BarChartLegend
-				activeIndex={activeIndex}
-				colorFor={colorFor}
-				data={data}
-				layout={legend}
-				onActivate={setHoverIndex}
-				onDeactivate={deactivate}
-				onSelect={focusBar}
-				titleId={titleId}
-				total={total}
-			/>
-		</figure>
+			<Legend layout={legend} />
+		</ChartContainer>
 	);
 }

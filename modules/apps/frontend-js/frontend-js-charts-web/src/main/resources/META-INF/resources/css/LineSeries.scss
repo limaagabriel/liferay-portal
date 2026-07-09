@@ -1,0 +1,101 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+@import 'atlas-custom-properties/_variables';
+
+.charts-line-series {
+	// Each series carries its color in `--charts-line-color`, set inline, so
+	// the line and its markers all tint from one source.
+
+	&__line {
+		fill: none;
+		stroke: var(--charts-line-color, $primary);
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		stroke-width: 2;
+	}
+
+	// The white stroke rings the marker so it stays legible where it overlaps
+	// the line or another marker.
+
+	&__marker {
+		fill: var(--charts-line-color, $primary);
+		stroke: $white;
+		stroke-width: 1;
+	}
+
+	// Transparent hit target sitting over each marker. It owns focus and
+	// pointer interaction; the visible marker is decorative.
+
+	&__point {
+		cursor: pointer;
+		fill: transparent;
+		outline: none;
+		stroke: transparent;
+	}
+
+	// Focus halo: a white ring behind the focused point, larger than the
+	// resting marker, so keyboard focus stays visible regardless of the
+	// series color. It is driven by focus state, not CSS `:focus-visible`, so
+	// it also shows when a point is selected by mouse.
+
+	&__halo {
+		fill: $white;
+	}
+
+	// Reveal stagger: opt-in per series via `is-animated`, gated in JS on the
+	// container's resolved motion policy (prop AND-ed with reduced-motion), so
+	// this rule itself never has to know about the prop or the media query.
+
+	&.is-animated &__line {
+		animation: charts-line-series-fade 480ms ease-out backwards;
+	}
+
+	&.is-animated &__marker-inner {
+		animation: charts-line-series-marker-pop 360ms ease-out backwards;
+		animation-delay: var(--charts-marker-delay, 0ms);
+		transform-box: fill-box;
+		transform-origin: center;
+	}
+}
+
+@keyframes charts-line-series-fade {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes charts-line-series-marker-pop {
+	from {
+		opacity: 0;
+		transform: scale(0);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+// Strip animations under both the OS media query and the Clay
+// `c-prefers-reduced-motion` body class. The container already suppresses
+// `is-animated` for both cases; this is defense-in-depth for markup that
+// sets the class after the container's one-time mount read.
+
+@media (prefers-reduced-motion: reduce) {
+	.charts-line-series__line,
+	.charts-line-series__marker-inner {
+		animation: none !important;
+	}
+}
+
+body.c-prefers-reduced-motion .charts-line-series__line,
+body.c-prefers-reduced-motion .charts-line-series__marker-inner {
+	animation: none !important;
+}

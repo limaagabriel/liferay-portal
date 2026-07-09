@@ -27,6 +27,7 @@ export default function ChartLegendList({
 				<li
 					className={classNames('charts-legend__item', {
 						'is-active': item.active,
+						'is-muted': item.muted,
 					})}
 					key={item.id}
 					onClick={() => onSelect(item.id)}

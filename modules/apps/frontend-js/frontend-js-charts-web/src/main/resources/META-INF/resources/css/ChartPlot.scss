@@ -1,0 +1,27 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+@import 'atlas-custom-properties/_variables';
+
+.charts-plot {
+	color: $dark;
+	display: block;
+	margin: 0;
+
+	// The SVG scales fluidly to the figure width, matching the responsive
+	// sizing every existing chart's own plot SVG already uses.
+
+	svg {
+		display: block;
+		height: auto;
+		width: 100%;
+	}
+
+	&__title {
+		font-size: 0.9375rem;
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+	}
+}

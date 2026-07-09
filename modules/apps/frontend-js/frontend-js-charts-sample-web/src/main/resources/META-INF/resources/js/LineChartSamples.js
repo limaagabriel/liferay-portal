@@ -21,6 +21,9 @@ const GAPPED_SERIES = [
 	{label: 'Sensor B', values: [8, null, null, 11, 16, 13]},
 ];
 
+// LineChart now wraps ChartState internally, but LineChartProps has no
+// error/loading passthrough, so the external wrapper below is kept.
+
 export function LineChartSamples() {
 	return (
 		<>
