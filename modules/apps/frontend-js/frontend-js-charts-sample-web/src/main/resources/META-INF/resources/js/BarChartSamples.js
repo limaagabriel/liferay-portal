@@ -58,6 +58,18 @@ export function BarChartSamples() {
 				/>
 			</SampleContainer>
 
+			<SampleContainer label="Categorical colors, rounded track, value labels">
+				<BarChart
+					className="mx-auto"
+					data={BAR_DATA}
+					legend="list"
+					rounded
+					scheme="categorical"
+					title="Sessions by channel"
+					track
+				/>
+			</SampleContainer>
+
 			<SampleContainer label="Trend indicator">
 				<div className="d-flex flex-wrap justify-content-center">
 					<TrendIndicator

@@ -13,9 +13,10 @@ import Grid from '../chart_container/Grid';
 import Legend from '../chart_container/Legend';
 import ComposableBarSeries from '../chart_container/series/BarSeries';
 
+import type {ChartAxisConfig} from '../chart_container/types';
 import type {BarChartProps, BarDatum} from './types';
 
-const Y_TICK_COUNT = 5;
+const NUMERIC_TICK_COUNT = 5;
 
 function barCategory(datum: BarDatum): string {
 	return datum.label;
@@ -26,30 +27,53 @@ function barValue(datum: BarDatum): number {
 }
 
 /**
+ * Resolves the container's axis pair from `orientation`: `horizontal` puts
+ * the numeric domain on X and the band domain on Y (the mirror of the
+ * `vertical` default), matching `getNumericAxisKey`'s contract so
+ * `BarSeries`/`Axis`/`Grid` orient themselves with no separate prop of
+ * their own.
+ */
+function resolveAxes(
+	orientation: 'horizontal' | 'vertical',
+	categoryCount: number
+): {xAxis: ChartAxisConfig; yAxis: ChartAxisConfig} {
+	const numericAxis: ChartAxisConfig = {
+		tickCount: NUMERIC_TICK_COUNT,
+		type: 'numeric',
+	};
+	const categoricalAxis: ChartAxisConfig = {
+		categoryCount,
+		type: 'categorical',
+	};
+
+	if (orientation === 'horizontal') {
+		return {xAxis: numericAxis, yAxis: categoricalAxis};
+	}
+
+	return {xAxis: categoricalAxis, yAxis: numericAxis};
+}
+
+/**
  * Thin facade over the composable chart primitives: maps the single
  * `data: BarDatum[]` array onto one composable `BarSeries`.
  *
- * Several legacy behaviors are not wired through the composable pipeline:
+ * `orientation` drives the container's axis pair (see `resolveAxes`);
+ * `rounded`, `track`, and `size` pass straight through to `BarSeries`;
+ * `scheme: 'categorical'` maps to `colorByCategory`, giving each bar its own
+ * hue (and its own `Legend` row) instead of one color for the whole series,
+ * matching the old `BarChartLegend`'s per-bar rows; `showValues` is always
+ * on, restoring the old `BarChartBar`'s unconditional per-bar value text.
  *
- * - `orientation: 'horizontal'` is unsupported; the shared scale is
- *   band-x/numeric-y only.
- * - `rounded` and `track` are unsupported; `BarSeries` always renders a
- *   fixed corner radius and never draws a background track.
- * - `size: 'inline'` still suppresses the axis/grid as before, but no
- *   longer flattens every bar to a fixed thickness (band-ratio width only).
- * - `scheme: 'categorical'` no longer gives each bar its own hue: a single
- *   `BarSeries` resolves one color for the whole series, so every bar
- *   renders the same categorical shade.
- * - The shared `Legend` lists one entry per registered series. Since this
- *   facade registers a single `BarSeries` for the whole chart, `legend`
- *   can no longer list one row per bar (with per-bar value/share columns
- *   and focus-on-select) the way the old `BarChartLegend` did.
- * - Per-bar value/category `<text>` labels (drawn on/above each bar by the
- *   old `BarChartBar`) are gone; category labels now come from the shared
- *   `Axis` and values are exposed only through each bar's `aria-label`.
+ * Two legacy behaviors stay unwired:
  *
- * These are kept on `BarChartProps` for prop-API compatibility and
- * documented here rather than silently dropped.
+ * - Per-bar category `<text>` labels (the old `BarChartBar` drew one
+ *   alongside its value) are deliberately not restored: the shared `Axis`
+ *   already renders one category label per band, so a per-bar copy would
+ *   just duplicate it.
+ * - Hovering/selecting a `Legend` row no longer highlights or focuses the
+ *   matching bar (the old `BarChartLegend`'s `onActivate`/`onSelect`).
+ *   `Legend` itself only wires the chart-to-legend direction so far; the
+ *   reverse is deferred there, not something this facade can add on its own.
  */
 export default function BarChart({
 	animated = true,
@@ -68,6 +92,11 @@ export default function BarChart({
 }: BarChartProps) {
 	const categories = useMemo(() => data.map((datum) => datum.label), [data]);
 
+	const {xAxis, yAxis} = useMemo(
+		() => resolveAxes(orientation, data.length),
+		[orientation, data.length]
+	);
+
 	const resolvedDescription = useMemo(() => {
 		if (description) {
 			return description;
@@ -84,12 +113,13 @@ export default function BarChart({
 
 	return (
 		<ChartContainer
+			animated={animated}
 			categories={categories}
 			data={data}
 			dims={{height, width}}
 			scheme={scheme}
-			xAxis={{categoryCount: data.length, type: 'categorical'}}
-			yAxis={{tickCount: Y_TICK_COUNT, type: 'numeric'}}
+			xAxis={xAxis}
+			yAxis={yAxis}
 		>
 			<ChartPlot
 				className={classNames(
@@ -114,9 +144,14 @@ export default function BarChart({
 				{showAxis && <Axis />}
 
 				<ComposableBarSeries
+					colorByCategory={scheme === 'categorical'}
 					colorIndex={0}
 					id="bar-series"
 					label={title}
+					rounded={rounded}
+					showValues
+					size={size}
+					track={track}
 					x={barCategory}
 					y={barValue}
 				/>

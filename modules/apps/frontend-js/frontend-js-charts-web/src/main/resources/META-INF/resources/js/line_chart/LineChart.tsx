@@ -11,6 +11,7 @@ import ChartContainer from '../chart_container/ChartContainer';
 import ChartPlot from '../chart_container/ChartPlot';
 import Grid from '../chart_container/Grid';
 import Legend from '../chart_container/Legend';
+import Tooltip from '../chart_container/Tooltip';
 import ComposableLineSeries from '../chart_container/series/LineSeries';
 
 import type {LineChartProps} from './types';
@@ -21,10 +22,11 @@ import type {LineChartProps} from './types';
  * accessor-based `LineSeries` per line, so existing consumers keep their
  * current prop API while rendering goes through the shared pipeline.
  *
- * `animated` and `pointTooltip` still drive their legacy BEM modifier
- * classes on the root element (kept for prop/CSS compatibility), but no
- * primitive in the composable pipeline implements reveal animation or a
- * value tooltip yet, so both are effectively no-ops today.
+ * `animated` passes straight through to `ChartContainer`, which owns the
+ * reveal-stagger policy every series reads through context. `pointTooltip`
+ * renders the composable `Tooltip` inside the plot, translating the legacy
+ * `'none'` option (unsupported by `Tooltip`'s own `placement`) into simply
+ * not rendering it.
  */
 export default function LineChart({
 	animated = true,
@@ -73,6 +75,7 @@ export default function LineChart({
 
 	return (
 		<ChartContainer
+			animated={animated}
 			categories={categories}
 			data={data}
 			dims={{height, width}}
@@ -113,6 +116,10 @@ export default function LineChart({
 						y={valueAccessors[index]}
 					/>
 				))}
+
+				{pointTooltip !== 'none' && (
+					<Tooltip format={format} placement={pointTooltip} />
+				)}
 			</ChartPlot>
 
 			<Legend layout={legend} />
