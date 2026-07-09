@@ -5,6 +5,7 @@
 
 import {
 	getChartScale,
+	getSymmetricChartScale,
 	niceTickStep,
 } from '../../../src/main/resources/META-INF/resources/js/chart_container/plot/scale';
 
@@ -44,5 +45,88 @@ describe('getChartScale', () => {
 describe('niceTickStep', () => {
 	it('lands on a value from the {1, 2, 2.5, 5} x 10^k family', () => {
 		expect(niceTickStep(100, 5)).toBe(20);
+	});
+});
+
+describe('getSymmetricChartScale', () => {
+	const verticalOptions = {
+		height: 100,
+		padding: {bottom: 0, left: 20, right: 0, top: 0},
+		valueMax: 10,
+		valueMin: 0,
+		width: 220,
+		xAxis: {categoryCount: 4, type: 'categorical'} as const,
+		yAxis: {tickCount: 5, type: 'numeric'} as const,
+	};
+
+	it('matches xForIndex for a categorical x axis', () => {
+		const scale = getChartScale(verticalOptions);
+		const symmetricScale = getSymmetricChartScale(verticalOptions);
+
+		[0, 1, 2, 3].forEach((index) => {
+			expect(symmetricScale.xPosition(index)).toBeCloseTo(
+				scale.xForIndex(index)
+			);
+		});
+	});
+
+	it('matches yForValue for a numeric y axis across positive, negative, and zero values', () => {
+		const options = {...verticalOptions, valueMin: -5};
+
+		const scale = getChartScale(options);
+		const symmetricScale = getSymmetricChartScale(options);
+
+		[-5, -2.5, 0, 5, 10].forEach((value) => {
+			expect(symmetricScale.yPosition(value)).toBeCloseTo(
+				scale.yForValue(value)
+			);
+		});
+	});
+
+	it('supports a swapped configuration with a numeric x axis and categorical y axis', () => {
+		const horizontalOptions = {
+			height: 220,
+			padding: {bottom: 0, left: 0, right: 0, top: 20},
+			valueMax: 10,
+			valueMin: -5,
+			width: 100,
+			xAxis: {tickCount: 5, type: 'numeric'} as const,
+			yAxis: {categoryCount: 4, type: 'categorical'} as const,
+		};
+
+		const symmetricScale = getSymmetricChartScale(horizontalOptions);
+		const yBandSize =
+			symmetricScale.plot.height / horizontalOptions.yAxis.categoryCount;
+
+		expect(symmetricScale.bandSize).toBeCloseTo(yBandSize);
+		expect(symmetricScale.categoryPositions[0]).toBeCloseTo(
+			horizontalOptions.padding.top + yBandSize / 2
+		);
+		expect(symmetricScale.xPosition(10)).toBeGreaterThan(
+			symmetricScale.xPosition(-5)
+		);
+
+		const step = niceTickStep(
+			Math.max(
+				horizontalOptions.valueMax - horizontalOptions.valueMin,
+				horizontalOptions.valueMax,
+				1
+			),
+			horizontalOptions.xAxis.tickCount
+		);
+		const domainMin =
+			horizontalOptions.valueMin >= 0
+				? 0
+				: Math.floor(horizontalOptions.valueMin / step) * step;
+		const domainMax = Math.max(
+			domainMin + step,
+			Math.ceil(horizontalOptions.valueMax / step) * step
+		);
+		const domainRange = domainMax - domainMin;
+		const expectedBaseline =
+			horizontalOptions.padding.left +
+			symmetricScale.plot.width * ((0 - domainMin) / domainRange);
+
+		expect(symmetricScale.xPosition(0)).toBeCloseTo(expectedBaseline);
 	});
 });
