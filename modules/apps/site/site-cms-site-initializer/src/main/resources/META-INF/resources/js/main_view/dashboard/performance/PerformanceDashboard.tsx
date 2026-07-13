@@ -12,6 +12,12 @@ import {ContentConsumption} from './components/ContentConsumption';
 import {Filters} from './components/Filters';
 import {Overview} from './components/Overview';
 
+// DON'T MERGE - Bypass the Analytics Cloud connection gate to preview the
+// dashboard against the fake data in PerformanceService. Set MOCK to false (or
+// drop this block) to restore the real connection state.
+
+const MOCK: boolean = true;
+
 export default function PerformanceDashboard({
 	admin,
 	analyticsEnabled,
@@ -19,7 +25,7 @@ export default function PerformanceDashboard({
 	admin: boolean;
 	analyticsEnabled: boolean;
 }) {
-	if (!analyticsEnabled) {
+	if (!analyticsEnabled && !MOCK) {
 		return (
 			<div
 				className="align-items-center d-flex justify-content-center"
