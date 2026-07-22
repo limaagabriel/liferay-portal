@@ -18,6 +18,21 @@ import InitialFocus from './InitialFocus';
 
 import './ChatContainers.scss';
 
+function arrowKeyToDelta(key: string, step: number): [number, number] | null {
+	switch (key) {
+		case 'ArrowDown':
+			return [0, step];
+		case 'ArrowLeft':
+			return [-step, 0];
+		case 'ArrowRight':
+			return [step, 0];
+		case 'ArrowUp':
+			return [0, -step];
+		default:
+			return null;
+	}
+}
+
 interface FloatingPanelProps {
 	children: React.ReactNode;
 	className?: string;
@@ -49,21 +64,11 @@ export default function FloatingPanel({
 
 	const handleDragKeyDown = useCallback(
 		(event: React.KeyboardEvent) => {
-			if (event.key === 'ArrowLeft') {
+			const delta = arrowKeyToDelta(event.key, NUDGE_STEP);
+
+			if (delta) {
 				event.preventDefault();
-				drag(-NUDGE_STEP, 0);
-			}
-			else if (event.key === 'ArrowRight') {
-				event.preventDefault();
-				drag(NUDGE_STEP, 0);
-			}
-			else if (event.key === 'ArrowUp') {
-				event.preventDefault();
-				drag(0, -NUDGE_STEP);
-			}
-			else if (event.key === 'ArrowDown') {
-				event.preventDefault();
-				drag(0, NUDGE_STEP);
+				drag(...delta);
 			}
 		},
 		[drag]
@@ -71,21 +76,11 @@ export default function FloatingPanel({
 
 	const handleResizeKeyDown = useCallback(
 		(event: React.KeyboardEvent) => {
-			if (event.key === 'ArrowLeft') {
+			const delta = arrowKeyToDelta(event.key, RESIZE_STEP);
+
+			if (delta) {
 				event.preventDefault();
-				resize(-RESIZE_STEP, 0);
-			}
-			else if (event.key === 'ArrowRight') {
-				event.preventDefault();
-				resize(RESIZE_STEP, 0);
-			}
-			else if (event.key === 'ArrowUp') {
-				event.preventDefault();
-				resize(0, -RESIZE_STEP);
-			}
-			else if (event.key === 'ArrowDown') {
-				event.preventDefault();
-				resize(0, RESIZE_STEP);
+				resize(...delta);
 			}
 		},
 		[resize]
