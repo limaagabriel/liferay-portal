@@ -11,7 +11,6 @@ import FloatingPanel from './FloatingPanel';
 export interface ChatFloatingContainerProps
 	extends React.HTMLAttributes<HTMLDivElement> {
 	children: React.ReactNode;
-	id?: string;
 	onOpenChange?: (open: boolean) => void;
 	open?: boolean;
 	trigger: React.ReactElement & {
