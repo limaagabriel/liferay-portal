@@ -44,6 +44,27 @@ create table StyleBookEntryVersion (
 	primary key (styleBookEntryVersionId, ctCollectionId)
 );
 
+create table StyleBookToken (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
+	uuid_ VARCHAR(75) null,
+	externalReferenceCode VARCHAR(75) null,
+	styleBookTokenId LONG not null,
+	groupId LONG,
+	companyId LONG,
+	userId LONG,
+	userName VARCHAR(75) null,
+	createDate DATE null,
+	modifiedDate DATE null,
+	styleBookTokenSetId LONG,
+	description STRING null,
+	name VARCHAR(75) null,
+	tokenKey VARCHAR(75) null,
+	type_ VARCHAR(75) null,
+	value VARCHAR(75) null,
+	primary key (styleBookTokenId, ctCollectionId)
+);
+
 create table StyleBookTokenSet (
 	mvccVersion LONG default 0 not null,
 	ctCollectionId LONG default 0 not null,
