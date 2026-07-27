@@ -231,6 +231,12 @@ public interface StyleBookTokenSetLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public StyleBookTokenSet getOrAddStaticStyleBookTokenSet(
+			long userId, String frontendTokenCategoryName, String name,
+			long styleBookEntryId, String themeId)
+		throws PortalException;
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -353,4 +359,4 @@ public interface StyleBookTokenSetLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1718388473
+// LIFERAY-SERVICE-BUILDER-HASH:-1195552149

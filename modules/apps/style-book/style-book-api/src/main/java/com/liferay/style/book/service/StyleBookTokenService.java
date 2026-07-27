@@ -13,6 +13,7 @@ import com.liferay.portal.kernel.security.access.control.AccessControlled;
 import com.liferay.portal.kernel.service.BaseService;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.style.book.model.StyleBookToken;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -40,6 +41,12 @@ public interface StyleBookTokenService extends BaseService {
 	 *
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.style.book.service.impl.StyleBookTokenServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the style book token remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link StyleBookTokenServiceUtil} if injection and service tracking are not available.
 	 */
+	public StyleBookToken addStyleBookToken(
+			String externalReferenceCode, String description,
+			String frontendTokenCategoryName, String frontendTokenSetName,
+			String name, long styleBookEntryId, String themeId, String type,
+			String value)
+		throws PortalException;
 
 	/**
 	 * Returns the OSGi service identifier.
@@ -49,4 +56,4 @@ public interface StyleBookTokenService extends BaseService {
 	public String getOSGiServiceIdentifier();
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1333719431
+// LIFERAY-SERVICE-BUILDER-HASH:2016903571

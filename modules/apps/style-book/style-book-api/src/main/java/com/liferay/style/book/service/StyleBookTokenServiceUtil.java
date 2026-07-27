@@ -5,7 +5,9 @@
 
 package com.liferay.style.book.service;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.module.service.Snapshot;
+import com.liferay.style.book.model.StyleBookToken;
 
 /**
  * Provides the remote service utility for StyleBookToken. This utility wraps
@@ -26,6 +28,17 @@ public class StyleBookTokenServiceUtil {
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.style.book.service.impl.StyleBookTokenServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
+	public static StyleBookToken addStyleBookToken(
+			String externalReferenceCode, String description,
+			String frontendTokenCategoryName, String frontendTokenSetName,
+			String name, long styleBookEntryId, String themeId, String type,
+			String value)
+		throws PortalException {
+
+		return getService().addStyleBookToken(
+			externalReferenceCode, description, frontendTokenCategoryName,
+			frontendTokenSetName, name, styleBookEntryId, themeId, type, value);
+	}
 
 	/**
 	 * Returns the OSGi service identifier.
@@ -45,4 +58,4 @@ public class StyleBookTokenServiceUtil {
 			StyleBookTokenServiceUtil.class, StyleBookTokenService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-481906330
+// LIFERAY-SERVICE-BUILDER-HASH:1134093205

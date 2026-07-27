@@ -293,6 +293,16 @@ public class StyleBookTokenSetLocalServiceWrapper
 			getIndexableActionableDynamicQuery();
 	}
 
+	@Override
+	public StyleBookTokenSet getOrAddStaticStyleBookTokenSet(
+			long userId, String frontendTokenCategoryName, String name,
+			long styleBookEntryId, String themeId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _styleBookTokenSetLocalService.getOrAddStaticStyleBookTokenSet(
+			userId, frontendTokenCategoryName, name, styleBookEntryId, themeId);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -479,4 +489,4 @@ public class StyleBookTokenSetLocalServiceWrapper
 	private StyleBookTokenSetLocalService _styleBookTokenSetLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:102993030
+// LIFERAY-SERVICE-BUILDER-HASH:1763013071
