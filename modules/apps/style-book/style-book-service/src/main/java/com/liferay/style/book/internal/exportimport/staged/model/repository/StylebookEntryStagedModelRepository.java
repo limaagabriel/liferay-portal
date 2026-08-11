@@ -14,6 +14,8 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.style.book.model.StyleBookEntry;
 import com.liferay.style.book.service.StyleBookEntryLocalService;
 
+import java.io.Serializable;
+
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
@@ -45,13 +47,31 @@ public class StylebookEntryStagedModelRepository
 			serviceContext.setUuid(styleBookEntry.getUuid());
 		}
 
-		return _styleBookEntryLocalService.addStyleBookEntry(
-			styleBookEntry.getExternalReferenceCode(), userId,
-			styleBookEntry.getGroupId(),
-			styleBookEntry.isDefaultStyleBookEntry(),
-			styleBookEntry.getFrontendTokensValues(), styleBookEntry.getName(),
-			styleBookEntry.getStyleBookEntryKey(), styleBookEntry.getThemeId(),
-			serviceContext);
+		StyleBookEntry newStyleBookEntry =
+			_styleBookEntryLocalService.addStyleBookEntry(
+				styleBookEntry.getExternalReferenceCode(), userId,
+				styleBookEntry.getGroupId(),
+				styleBookEntry.isDefaultStyleBookEntry(),
+				styleBookEntry.getFrontendTokensValues(),
+				styleBookEntry.getName(), styleBookEntry.getStyleBookEntryKey(),
+				styleBookEntry.getThemeId(), serviceContext);
+
+		Serializable validateFrontendTokenDefinition =
+			serviceContext.getAttribute("validateFrontendTokenDefinition");
+
+		serviceContext.setAttribute(
+			"validateFrontendTokenDefinition", Boolean.FALSE);
+
+		try {
+			return _styleBookEntryLocalService.updateFrontendTokenDefinition(
+				newStyleBookEntry.getStyleBookEntryId(),
+				styleBookEntry.getFrontendTokenDefinition(), serviceContext);
+		}
+		finally {
+			serviceContext.setAttribute(
+				"validateFrontendTokenDefinition",
+				validateFrontendTokenDefinition);
+		}
 	}
 
 	@Override
@@ -128,14 +148,34 @@ public class StylebookEntryStagedModelRepository
 			StyleBookEntry styleBookEntry)
 		throws PortalException {
 
-		return _styleBookEntryLocalService.updateStyleBookEntry(
-			portletDataContext.getUserId(styleBookEntry.getUserUuid()),
-			styleBookEntry.getStyleBookEntryId(),
-			styleBookEntry.isDefaultStyleBookEntry(),
-			styleBookEntry.getFrontendTokensValues(), styleBookEntry.getName(),
-			styleBookEntry.getStyleBookEntryKey(),
-			styleBookEntry.getPreviewFileEntryId(),
-			portletDataContext.createServiceContext(styleBookEntry));
+		ServiceContext serviceContext = portletDataContext.createServiceContext(
+			styleBookEntry);
+
+		StyleBookEntry updatedStyleBookEntry =
+			_styleBookEntryLocalService.updateStyleBookEntry(
+				portletDataContext.getUserId(styleBookEntry.getUserUuid()),
+				styleBookEntry.getStyleBookEntryId(),
+				styleBookEntry.isDefaultStyleBookEntry(),
+				styleBookEntry.getFrontendTokensValues(),
+				styleBookEntry.getName(), styleBookEntry.getStyleBookEntryKey(),
+				styleBookEntry.getPreviewFileEntryId(), serviceContext);
+
+		Serializable validateFrontendTokenDefinition =
+			serviceContext.getAttribute("validateFrontendTokenDefinition");
+
+		serviceContext.setAttribute(
+			"validateFrontendTokenDefinition", Boolean.FALSE);
+
+		try {
+			return _styleBookEntryLocalService.updateFrontendTokenDefinition(
+				updatedStyleBookEntry.getStyleBookEntryId(),
+				styleBookEntry.getFrontendTokenDefinition(), serviceContext);
+		}
+		finally {
+			serviceContext.setAttribute(
+				"validateFrontendTokenDefinition",
+				validateFrontendTokenDefinition);
+		}
 	}
 
 	@Reference
