@@ -9,6 +9,7 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.string.CharPool;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
@@ -26,6 +27,7 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -167,6 +169,10 @@ public class ExportImportStyleBookEntriesMVCResourceCommandTest {
 		Assert.assertEquals(
 			expectedFrontendTokensValuesJSONObject.toString(),
 			actualFrontendTokensValuesJSONObject.toString());
+
+		Assert.assertTrue(
+			Validator.isBlank(
+				targetGroupStyleBookEntry.getFrontendTokenDefinition()));
 	}
 
 	@Test(expected = DuplicateStyleBookEntryKeyException.class)
@@ -286,6 +292,172 @@ public class ExportImportStyleBookEntriesMVCResourceCommandTest {
 	}
 
 	@Test
+	public void testExportImportSingleStyleBookEntryAndOverwriteWithFrontendTokenDefinition()
+		throws Exception {
+
+		String styleBookEntryKey = RandomTestUtil.randomString();
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				_sourceGroup, TestPropsValues.getUserId());
+
+		StyleBookEntry styleBookEntry =
+			_styleBookEntryLocalService.addStyleBookEntry(
+				null, TestPropsValues.getUserId(), _sourceGroup.getGroupId(),
+				false, _read("frontend-tokens-values.json"),
+				RandomTestUtil.randomString(), styleBookEntryKey,
+				RandomTestUtil.randomString(), serviceContext);
+
+		File file = ReflectionTestUtil.invoke(
+			_exportStyleBookEntriesMVCResourceCommand,
+			"_exportStyleBookEntries", new Class<?>[] {long[].class},
+			new long[] {styleBookEntry.getStyleBookEntryId()});
+
+		ReflectionTestUtil.invoke(
+			_importStyleBookEntriesMVCActionCommand, "_importStyleBookEntries",
+			new Class<?>[] {long.class, long.class, File.class, boolean.class},
+			TestPropsValues.getUserId(), _targetGroup.getGroupId(), file,
+			false);
+
+		String frontendTokenDefinition = _getFrontendTokenDefinition(
+			"primaryColor");
+
+		StyleBookEntry updatedStyleBookEntry =
+			_styleBookEntryLocalService.updateFrontendTokenDefinition(
+				styleBookEntry.getStyleBookEntryId(), frontendTokenDefinition,
+				serviceContext);
+
+		file = ReflectionTestUtil.invoke(
+			_exportStyleBookEntriesMVCResourceCommand,
+			"_exportStyleBookEntries", new Class<?>[] {long[].class},
+			new long[] {updatedStyleBookEntry.getStyleBookEntryId()});
+
+		ReflectionTestUtil.invoke(
+			_importStyleBookEntriesMVCActionCommand, "_importStyleBookEntries",
+			new Class<?>[] {long.class, long.class, File.class, boolean.class},
+			TestPropsValues.getUserId(), _targetGroup.getGroupId(), file, true);
+
+		StyleBookEntry updatedTargetGroupStyleBookEntry =
+			_styleBookEntryLocalService.fetchStyleBookEntry(
+				_targetGroup.getGroupId(), styleBookEntryKey);
+
+		JSONObject expectedFrontendTokenDefinitionJSONObject =
+			JSONFactoryUtil.createJSONObject(frontendTokenDefinition);
+		JSONObject actualFrontendTokenDefinitionJSONObject =
+			JSONFactoryUtil.createJSONObject(
+				updatedTargetGroupStyleBookEntry.getFrontendTokenDefinition());
+
+		Assert.assertEquals(
+			expectedFrontendTokenDefinitionJSONObject.toString(),
+			actualFrontendTokenDefinitionJSONObject.toString());
+	}
+
+	@Test
+	public void testExportImportSingleStyleBookEntryAndOverwriteWithoutFrontendTokenDefinitionClearsExistingOne()
+		throws Exception {
+
+		String styleBookEntryKey = RandomTestUtil.randomString();
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				_sourceGroup, TestPropsValues.getUserId());
+
+		StyleBookEntry styleBookEntry =
+			_styleBookEntryLocalService.addStyleBookEntry(
+				null, TestPropsValues.getUserId(), _sourceGroup.getGroupId(),
+				false, _read("frontend-tokens-values.json"),
+				RandomTestUtil.randomString(), styleBookEntryKey,
+				RandomTestUtil.randomString(), serviceContext);
+
+		File file = ReflectionTestUtil.invoke(
+			_exportStyleBookEntriesMVCResourceCommand,
+			"_exportStyleBookEntries", new Class<?>[] {long[].class},
+			new long[] {styleBookEntry.getStyleBookEntryId()});
+
+		ReflectionTestUtil.invoke(
+			_importStyleBookEntriesMVCActionCommand, "_importStyleBookEntries",
+			new Class<?>[] {long.class, long.class, File.class, boolean.class},
+			TestPropsValues.getUserId(), _targetGroup.getGroupId(), file,
+			false);
+
+		StyleBookEntry targetGroupStyleBookEntry =
+			_styleBookEntryLocalService.fetchStyleBookEntry(
+				_targetGroup.getGroupId(), styleBookEntryKey);
+
+		_styleBookEntryLocalService.updateFrontendTokenDefinition(
+			targetGroupStyleBookEntry.getStyleBookEntryId(),
+			_getFrontendTokenDefinition(RandomTestUtil.randomString()),
+			ServiceContextTestUtil.getServiceContext(
+				_targetGroup, TestPropsValues.getUserId()));
+
+		ReflectionTestUtil.invoke(
+			_importStyleBookEntriesMVCActionCommand, "_importStyleBookEntries",
+			new Class<?>[] {long.class, long.class, File.class, boolean.class},
+			TestPropsValues.getUserId(), _targetGroup.getGroupId(), file, true);
+
+		StyleBookEntry updatedTargetGroupStyleBookEntry =
+			_styleBookEntryLocalService.fetchStyleBookEntry(
+				_targetGroup.getGroupId(), styleBookEntryKey);
+
+		Assert.assertTrue(
+			Validator.isBlank(
+				updatedTargetGroupStyleBookEntry.getFrontendTokenDefinition()));
+	}
+
+	@Test
+	public void testExportImportSingleStyleBookEntryWithFrontendTokenDefinition()
+		throws Exception {
+
+		String styleBookEntryKey = RandomTestUtil.randomString();
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				_sourceGroup, TestPropsValues.getUserId());
+
+		StyleBookEntry styleBookEntry =
+			_styleBookEntryLocalService.addStyleBookEntry(
+				null, TestPropsValues.getUserId(), _sourceGroup.getGroupId(),
+				false, _read("frontend-tokens-values.json"),
+				RandomTestUtil.randomString(), styleBookEntryKey,
+				RandomTestUtil.randomString(), serviceContext);
+
+		String frontendTokenDefinition = _getFrontendTokenDefinition(
+			"primaryColor");
+
+		styleBookEntry =
+			_styleBookEntryLocalService.updateFrontendTokenDefinition(
+				styleBookEntry.getStyleBookEntryId(), frontendTokenDefinition,
+				serviceContext);
+
+		File file = ReflectionTestUtil.invoke(
+			_exportStyleBookEntriesMVCResourceCommand,
+			"_exportStyleBookEntries", new Class<?>[] {long[].class},
+			new long[] {styleBookEntry.getStyleBookEntryId()});
+
+		ReflectionTestUtil.invoke(
+			_importStyleBookEntriesMVCActionCommand, "_importStyleBookEntries",
+			new Class<?>[] {long.class, long.class, File.class, boolean.class},
+			TestPropsValues.getUserId(), _targetGroup.getGroupId(), file,
+			false);
+
+		StyleBookEntry targetGroupStyleBookEntry =
+			_styleBookEntryLocalService.fetchStyleBookEntry(
+				_targetGroup.getGroupId(), styleBookEntryKey);
+
+		Assert.assertNotNull(targetGroupStyleBookEntry);
+
+		JSONObject expectedFrontendTokenDefinitionJSONObject =
+			JSONFactoryUtil.createJSONObject(frontendTokenDefinition);
+		JSONObject actualFrontendTokenDefinitionJSONObject =
+			JSONFactoryUtil.createJSONObject(
+				targetGroupStyleBookEntry.getFrontendTokenDefinition());
+
+		Assert.assertEquals(
+			expectedFrontendTokenDefinitionJSONObject.toString(),
+			actualFrontendTokenDefinitionJSONObject.toString());
+	}
+
+	@Test
 	public void testExportStyleBookEntries() throws Exception {
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(
@@ -349,6 +521,46 @@ public class ExportImportStyleBookEntriesMVCResourceCommandTest {
 			repository.getDlFolderId(),
 			clazz.getResourceAsStream("dependencies/thumbnail.png"),
 			RandomTestUtil.randomString(), ContentTypes.IMAGE_PNG, false);
+	}
+
+	private String _getFrontendTokenDefinition(String frontendTokenName) {
+		return JSONUtil.put(
+			"frontendTokenCategories",
+			JSONUtil.putAll(
+				JSONUtil.put(
+					"frontendTokenSets",
+					JSONUtil.putAll(
+						JSONUtil.put(
+							"frontendTokens",
+							JSONUtil.putAll(
+								JSONUtil.put(
+									"defaultValue", "#000000"
+								).put(
+									"editorType", "ColorPicker"
+								).put(
+									"label", "Primary Color"
+								).put(
+									"mappings",
+									JSONUtil.putAll(
+										JSONUtil.put(
+											"type", "cssVariable"
+										).put(
+											"value", "primary-color"
+										))
+								).put(
+									"name", frontendTokenName
+								).put(
+									"type", "String"
+								))
+						).put(
+							"label", "Palette"
+						).put(
+							"name", "palette"
+						))
+				).put(
+					"name", "colors"
+				))
+		).toString();
 	}
 
 	private boolean _isStyleBookDefinitionFile(String path) {
