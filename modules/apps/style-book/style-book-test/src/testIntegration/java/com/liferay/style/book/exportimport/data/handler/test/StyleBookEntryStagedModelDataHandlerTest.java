@@ -52,6 +52,53 @@ public class StyleBookEntryStagedModelDataHandlerTest
 		new LiferayIntegrationTestRule();
 
 	@Test
+	public void testExportImportPreservesFrontendTokenDefinition()
+		throws Exception {
+
+		StyleBookEntry styleBookEntry = (StyleBookEntry)addStagedModel(
+			stagingGroup, new HashMap<>());
+
+		String frontendTokenDefinition = _getFrontendTokenDefinition(
+			"primaryColor");
+
+		styleBookEntry =
+			_styleBookEntryLocalService.updateFrontendTokenDefinition(
+				styleBookEntry.getStyleBookEntryId(), frontendTokenDefinition,
+				ServiceContextTestUtil.getServiceContext(
+					stagingGroup.getGroupId(), TestPropsValues.getUserId()));
+
+		exportImportStagedModel(styleBookEntry);
+
+		StyleBookEntry importedStyleBookEntry = (StyleBookEntry)getStagedModel(
+			styleBookEntry.getUuid(), liveGroup);
+
+		Assert.assertNotNull(importedStyleBookEntry);
+		Assert.assertEquals(
+			frontendTokenDefinition,
+			importedStyleBookEntry.getFrontendTokenDefinition());
+
+		String updatedFrontendTokenDefinition = _getFrontendTokenDefinition(
+			"secondaryColor");
+
+		styleBookEntry =
+			_styleBookEntryLocalService.updateFrontendTokenDefinition(
+				styleBookEntry.getStyleBookEntryId(),
+				updatedFrontendTokenDefinition,
+				ServiceContextTestUtil.getServiceContext(
+					stagingGroup.getGroupId(), TestPropsValues.getUserId()));
+
+		exportImportStagedModel(styleBookEntry);
+
+		importedStyleBookEntry = (StyleBookEntry)getStagedModel(
+			styleBookEntry.getUuid(), liveGroup);
+
+		Assert.assertNotNull(importedStyleBookEntry);
+		Assert.assertEquals(
+			updatedFrontendTokenDefinition,
+			importedStyleBookEntry.getFrontendTokenDefinition());
+	}
+
+	@Test
 	public void testExportImportPreservesModifiedDateWithPreviewFileEntry()
 		throws Exception {
 
@@ -283,6 +330,46 @@ public class StyleBookEntryStagedModelDataHandlerTest
 			repository.getDlFolderId(),
 			clazz.getResourceAsStream("dependencies/thumbnail.png"),
 			RandomTestUtil.randomString(), ContentTypes.IMAGE_PNG, false);
+	}
+
+	private String _getFrontendTokenDefinition(String frontendTokenName) {
+		return JSONUtil.put(
+			"frontendTokenCategories",
+			JSONUtil.putAll(
+				JSONUtil.put(
+					"frontendTokenSets",
+					JSONUtil.putAll(
+						JSONUtil.put(
+							"frontendTokens",
+							JSONUtil.putAll(
+								JSONUtil.put(
+									"defaultValue", "#000000"
+								).put(
+									"editorType", "ColorPicker"
+								).put(
+									"label", "Primary Color"
+								).put(
+									"mappings",
+									JSONUtil.putAll(
+										JSONUtil.put(
+											"type", "cssVariable"
+										).put(
+											"value", "primary-color"
+										))
+								).put(
+									"name", frontendTokenName
+								).put(
+									"type", "String"
+								))
+						).put(
+							"label", "Palette"
+						).put(
+							"name", "palette"
+						))
+				).put(
+					"name", "colors"
+				))
+		).toString();
 	}
 
 	private ExportImportReportEntry _getWarningExportImportReportEntry(
