@@ -7,8 +7,12 @@ package com.liferay.style.book.service.impl;
 
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
+import com.liferay.frontend.token.definition.FrontendToken;
+import com.liferay.frontend.token.definition.FrontendTokenDefinition;
+import com.liferay.frontend.token.definition.FrontendTokenDefinitionRegistry;
 import com.liferay.frontend.token.definition.util.FrontendTokenDefinitionUtil;
 import com.liferay.frontend.token.definition.validator.FrontendTokenDefinitionJSONValidator;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -323,6 +327,30 @@ public class StyleBookEntryLocalServiceImpl
 				return newName;
 			}
 		}
+	}
+
+	@Override
+	public Set<String> getAvailableFrontendTokenNames(
+		StyleBookEntry styleBookEntry) {
+
+		Set<String> frontendTokenNames = new HashSet<>();
+
+		FrontendTokenDefinition themeFrontendTokenDefinition =
+			_frontendTokenDefinitionRegistry.getFrontendTokenDefinition(
+				styleBookEntry.getCompanyId(), styleBookEntry.getThemeId());
+
+		if (themeFrontendTokenDefinition != null) {
+			frontendTokenNames.addAll(
+				TransformUtil.transform(
+					themeFrontendTokenDefinition.getFrontendTokens(),
+					FrontendToken::getName));
+		}
+
+		frontendTokenNames.addAll(
+			FrontendTokenDefinitionUtil.getFrontendTokenNames(
+				styleBookEntry.getFrontendTokenDefinition()));
+
+		return frontendTokenNames;
 	}
 
 	@Override
@@ -850,6 +878,9 @@ public class StyleBookEntryLocalServiceImpl
 	private final FrontendTokenDefinitionJSONValidator
 		_frontendTokenDefinitionJSONValidator =
 			new FrontendTokenDefinitionJSONValidator();
+
+	@Reference
+	private FrontendTokenDefinitionRegistry _frontendTokenDefinitionRegistry;
 
 	@Reference
 	private PortletFileRepository _portletFileRepository;
