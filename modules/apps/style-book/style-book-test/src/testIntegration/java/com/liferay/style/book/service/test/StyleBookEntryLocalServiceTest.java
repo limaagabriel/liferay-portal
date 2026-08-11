@@ -118,6 +118,51 @@ public class StyleBookEntryLocalServiceTest {
 	}
 
 	@Test
+	public void testCopyStyleBookEntry() throws Exception {
+		StyleBookEntry sourceStyleBookEntry =
+			_styleBookEntryLocalService.addStyleBookEntry(
+				RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+				_group.getGroupId(), false, RandomTestUtil.randomString(),
+				RandomTestUtil.randomString(), null,
+				RandomTestUtil.randomString(), _serviceContext);
+
+		String frontendTokenDefinition = _getFrontendTokenDefinition(
+			"primaryColor");
+
+		sourceStyleBookEntry =
+			_styleBookEntryLocalService.updateFrontendTokenDefinition(
+				sourceStyleBookEntry.getStyleBookEntryId(),
+				frontendTokenDefinition, _serviceContext);
+
+		StyleBookEntry draftStyleBookEntry =
+			_styleBookEntryLocalService.getDraft(sourceStyleBookEntry);
+
+		String draftFrontendTokenDefinition = _getFrontendTokenDefinition(
+			"secondaryColor");
+
+		draftStyleBookEntry.setFrontendTokenDefinition(
+			draftFrontendTokenDefinition);
+
+		_styleBookEntryLocalService.updateDraft(draftStyleBookEntry);
+
+		StyleBookEntry copyStyleBookEntry =
+			_styleBookEntryLocalService.copyStyleBookEntry(
+				TestPropsValues.getUserId(), _group.getGroupId(),
+				sourceStyleBookEntry.getStyleBookEntryId(), _serviceContext);
+
+		Assert.assertEquals(
+			frontendTokenDefinition,
+			copyStyleBookEntry.getFrontendTokenDefinition());
+
+		StyleBookEntry copyDraftStyleBookEntry =
+			_styleBookEntryLocalService.getDraft(copyStyleBookEntry);
+
+		Assert.assertEquals(
+			draftFrontendTokenDefinition,
+			copyDraftStyleBookEntry.getFrontendTokenDefinition());
+	}
+
+	@Test
 	public void testDeleteGroup() throws Exception {
 		StyleBookEntry styleBookEntry =
 			_styleBookEntryLocalService.addStyleBookEntry(
@@ -167,7 +212,20 @@ public class StyleBookEntryLocalServiceTest {
 
 		long styleBookEntryId = styleBookEntry.getStyleBookEntryId();
 
-		String frontendTokenDefinition = JSONUtil.put(
+		String frontendTokenDefinition = _getFrontendTokenDefinition(
+			"primaryColor");
+
+		styleBookEntry =
+			_styleBookEntryLocalService.updateFrontendTokenDefinition(
+				styleBookEntryId, frontendTokenDefinition, _serviceContext);
+
+		Assert.assertEquals(
+			frontendTokenDefinition,
+			styleBookEntry.getFrontendTokenDefinition());
+	}
+
+	private String _getFrontendTokenDefinition(String frontendTokenName) {
+		return JSONUtil.put(
 			"frontendTokenCategories",
 			JSONUtil.putAll(
 				JSONUtil.put(
@@ -193,7 +251,7 @@ public class StyleBookEntryLocalServiceTest {
 											RandomTestUtil.randomString()
 										))
 								).put(
-									"name", RandomTestUtil.randomString()
+									"name", frontendTokenName
 								).put(
 									"type", "String"
 								))
@@ -206,14 +264,6 @@ public class StyleBookEntryLocalServiceTest {
 					"name", RandomTestUtil.randomString()
 				))
 		).toString();
-
-		styleBookEntry =
-			_styleBookEntryLocalService.updateFrontendTokenDefinition(
-				styleBookEntryId, frontendTokenDefinition, _serviceContext);
-
-		Assert.assertEquals(
-			frontendTokenDefinition,
-			styleBookEntry.getFrontendTokenDefinition());
 	}
 
 	@DeleteAfterTestRun
