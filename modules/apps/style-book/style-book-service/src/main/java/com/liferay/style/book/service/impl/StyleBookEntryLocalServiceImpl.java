@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UniqueUtil;
@@ -490,13 +491,20 @@ public class StyleBookEntryLocalServiceImpl
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public StyleBookEntry updateFrontendTokenDefinition(
-			long styleBookEntryId, String frontendTokenDefinition)
+			long styleBookEntryId, String frontendTokenDefinition,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		StyleBookEntry styleBookEntry =
 			styleBookEntryPersistence.findByPrimaryKey(styleBookEntryId);
 
-		_validateFrontendTokenDefinition(frontendTokenDefinition);
+		boolean validateFrontendTokenDefinition = GetterUtil.getBoolean(
+			serviceContext.getAttribute("validateFrontendTokenDefinition"),
+			true);
+
+		if (validateFrontendTokenDefinition) {
+			_validateFrontendTokenDefinition(frontendTokenDefinition);
+		}
 
 		styleBookEntry.setFrontendTokenDefinition(frontendTokenDefinition);
 

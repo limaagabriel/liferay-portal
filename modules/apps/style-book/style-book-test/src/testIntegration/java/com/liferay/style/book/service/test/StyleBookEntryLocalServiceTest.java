@@ -209,7 +209,7 @@ public class StyleBookEntryLocalServiceTest {
 
 		styleBookEntry =
 			_styleBookEntryLocalService.updateFrontendTokenDefinition(
-				styleBookEntryId, frontendTokenDefinition);
+				styleBookEntryId, frontendTokenDefinition, _serviceContext);
 
 		Assert.assertEquals(
 			frontendTokenDefinition,
