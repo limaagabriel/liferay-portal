@@ -63,6 +63,7 @@ public class StyleBookEntryLocalServiceImplTest {
 		_testUpdateFrontendTokenDefinitionClearsFrontendTokenDefinition(null);
 		_testUpdateFrontendTokenDefinitionClearsFrontendTokenDefinition(
 			StringPool.BLANK);
+		_testUpdateFrontendTokenDefinitionSkipsValidationWhenBypassed();
 		_testUpdateFrontendTokenDefinitionWithDuplicateFrontendTokenInPayload();
 		_testUpdateFrontendTokenDefinitionWithInvalidJSON();
 		_testUpdateFrontendTokenDefinitionWithInvalidJSONSchema();
@@ -180,6 +181,48 @@ public class StyleBookEntryLocalServiceImplTest {
 		).setFrontendTokenDefinition(
 			frontendTokenDefinition
 		);
+	}
+
+	private void _testUpdateFrontendTokenDefinitionSkipsValidationWhenBypassed()
+		throws Exception {
+
+		long styleBookEntryId = RandomTestUtil.randomLong();
+
+		StyleBookEntry styleBookEntry = _mockStyleBookEntry(styleBookEntryId);
+
+		Mockito.when(
+			_styleBookEntryPersistence.update(styleBookEntry)
+		).thenReturn(
+			styleBookEntry
+		);
+
+		String invalidFrontendTokenDefinition = "{not valid json";
+
+		ServiceContext bypassServiceContext = new ServiceContext();
+
+		bypassServiceContext.setAttribute(
+			"validateFrontendTokenDefinition", Boolean.FALSE);
+
+		StyleBookEntry updatedStyleBookEntry =
+			_styleBookEntryLocalService.updateFrontendTokenDefinition(
+				styleBookEntryId, invalidFrontendTokenDefinition,
+				bypassServiceContext);
+
+		Assert.assertEquals(styleBookEntry, updatedStyleBookEntry);
+
+		Mockito.verify(
+			styleBookEntry
+		).setFrontendTokenDefinition(
+			invalidFrontendTokenDefinition
+		);
+
+		AssertUtils.assertFailure(
+			StyleBookEntryFrontendTokenDefinitionException.class,
+			"Frontend token definition must be a valid frontend token " +
+				"definition",
+			() -> _styleBookEntryLocalService.updateFrontendTokenDefinition(
+				styleBookEntryId, invalidFrontendTokenDefinition,
+				new ServiceContext()));
 	}
 
 	private void _testUpdateFrontendTokenDefinitionWithDuplicateFrontendTokenInPayload()
