@@ -768,7 +768,8 @@ public class StyleBookEntryServiceHttp {
 	public static com.liferay.style.book.model.StyleBookEntry
 			updateFrontendTokenDefinition(
 				HttpPrincipal httpPrincipal, long styleBookEntryId,
-				String frontendTokenDefinition)
+				String frontendTokenDefinition,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -778,7 +779,8 @@ public class StyleBookEntryServiceHttp {
 				_updateFrontendTokenDefinitionParameterTypes17);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, styleBookEntryId, frontendTokenDefinition);
+				methodKey, styleBookEntryId, frontendTokenDefinition,
+				serviceContext);
 
 			Object returnObj = null;
 
@@ -1086,7 +1088,8 @@ public class StyleBookEntryServiceHttp {
 		};
 	private static final Class<?>[]
 		_updateFrontendTokenDefinitionParameterTypes17 = new Class[] {
-			long.class, String.class
+			long.class, String.class,
+			com.liferay.portal.kernel.service.ServiceContext.class
 		};
 	private static final Class<?>[]
 		_updateFrontendTokensValuesParameterTypes18 = new Class[] {
@@ -1112,4 +1115,4 @@ public class StyleBookEntryServiceHttp {
 		};
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1350064969
+// LIFERAY-SERVICE-BUILDER-HASH:-1854691500

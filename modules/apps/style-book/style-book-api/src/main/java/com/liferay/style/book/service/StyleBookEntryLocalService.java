@@ -457,7 +457,8 @@ public interface StyleBookEntryLocalService
 
 	@Indexable(type = IndexableType.REINDEX)
 	public StyleBookEntry updateFrontendTokenDefinition(
-			long styleBookEntryId, String frontendTokenDefinition)
+			long styleBookEntryId, String frontendTokenDefinition,
+			ServiceContext serviceContext)
 		throws PortalException;
 
 	@Indexable(type = IndexableType.REINDEX)
@@ -519,4 +520,4 @@ public interface StyleBookEntryLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1439227441
+// LIFERAY-SERVICE-BUILDER-HASH:624338901

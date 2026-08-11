@@ -656,11 +656,12 @@ public class StyleBookEntryLocalServiceWrapper
 
 	@Override
 	public StyleBookEntry updateFrontendTokenDefinition(
-			long styleBookEntryId, String frontendTokenDefinition)
+			long styleBookEntryId, String frontendTokenDefinition,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _styleBookEntryLocalService.updateFrontendTokenDefinition(
-			styleBookEntryId, frontendTokenDefinition);
+			styleBookEntryId, frontendTokenDefinition, serviceContext);
 	}
 
 	@Override
@@ -772,4 +773,4 @@ public class StyleBookEntryLocalServiceWrapper
 	private StyleBookEntryLocalService _styleBookEntryLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:2077988414
+// LIFERAY-SERVICE-BUILDER-HASH:-1741947221
