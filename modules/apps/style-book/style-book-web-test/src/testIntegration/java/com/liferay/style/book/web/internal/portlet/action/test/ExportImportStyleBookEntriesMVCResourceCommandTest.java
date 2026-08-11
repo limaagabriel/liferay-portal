@@ -39,6 +39,7 @@ import java.io.File;
 
 import java.util.Enumeration;
 import java.util.Objects;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -455,6 +456,60 @@ public class ExportImportStyleBookEntriesMVCResourceCommandTest {
 		Assert.assertEquals(
 			expectedFrontendTokenDefinitionJSONObject.toString(),
 			actualFrontendTokenDefinitionJSONObject.toString());
+	}
+
+	@Test
+	public void testExportImportSingleStyleBookEntryWithScopedFrontendTokenIsValid()
+		throws Exception {
+
+		String styleBookEntryKey = RandomTestUtil.randomString();
+		String frontendTokenName = RandomTestUtil.randomString();
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				_sourceGroup, TestPropsValues.getUserId());
+
+		StyleBookEntry styleBookEntry =
+			_styleBookEntryLocalService.addStyleBookEntry(
+				null, TestPropsValues.getUserId(), _sourceGroup.getGroupId(),
+				false,
+				JSONUtil.put(
+					frontendTokenName, JSONUtil.put("value", "#000000")
+				).toString(),
+				RandomTestUtil.randomString(), styleBookEntryKey,
+				RandomTestUtil.randomString(), serviceContext);
+
+		styleBookEntry =
+			_styleBookEntryLocalService.updateFrontendTokenDefinition(
+				styleBookEntry.getStyleBookEntryId(),
+				_getFrontendTokenDefinition(frontendTokenName), serviceContext);
+
+		File file = ReflectionTestUtil.invoke(
+			_exportStyleBookEntriesMVCResourceCommand,
+			"_exportStyleBookEntries", new Class<?>[] {long[].class},
+			new long[] {styleBookEntry.getStyleBookEntryId()});
+
+		ReflectionTestUtil.invoke(
+			_importStyleBookEntriesMVCActionCommand, "_importStyleBookEntries",
+			new Class<?>[] {long.class, long.class, File.class, boolean.class},
+			TestPropsValues.getUserId(), _targetGroup.getGroupId(), file,
+			false);
+
+		StyleBookEntry targetGroupStyleBookEntry =
+			_styleBookEntryLocalService.fetchStyleBookEntry(
+				_targetGroup.getGroupId(), styleBookEntryKey);
+
+		Assert.assertNotNull(targetGroupStyleBookEntry);
+
+		boolean valid = ReflectionTestUtil.invoke(
+			_importStyleBookEntriesMVCActionCommand,
+			"_isValidFrontendTokensValues",
+			new Class<?>[] {Set.class, StyleBookEntry.class},
+			_styleBookEntryLocalService.getAvailableFrontendTokenNames(
+				targetGroupStyleBookEntry),
+			targetGroupStyleBookEntry);
+
+		Assert.assertTrue(valid);
 	}
 
 	@Test

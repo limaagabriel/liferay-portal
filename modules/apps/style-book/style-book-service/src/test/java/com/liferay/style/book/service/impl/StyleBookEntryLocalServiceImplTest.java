@@ -218,8 +218,7 @@ public class StyleBookEntryLocalServiceImplTest {
 
 		AssertUtils.assertFailure(
 			StyleBookEntryFrontendTokenDefinitionException.class,
-			"Frontend token definition must be a valid frontend token " +
-				"definition",
+			"Unable to parse frontend token definition",
 			() -> _styleBookEntryLocalService.updateFrontendTokenDefinition(
 				styleBookEntryId, invalidFrontendTokenDefinition,
 				new ServiceContext()));

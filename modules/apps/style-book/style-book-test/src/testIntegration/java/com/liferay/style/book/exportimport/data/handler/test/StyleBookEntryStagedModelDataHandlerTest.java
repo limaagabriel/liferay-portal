@@ -52,6 +52,42 @@ public class StyleBookEntryStagedModelDataHandlerTest
 		new LiferayIntegrationTestRule();
 
 	@Test
+	public void testExportImportDoesNotWarnWhenTokenIsScopedToStyleBookDefinition()
+		throws Exception {
+
+		String frontendTokenName = "scopedOnlyToken";
+
+		StyleBookEntry styleBookEntry =
+			_styleBookEntryLocalService.addStyleBookEntry(
+				null, TestPropsValues.getUserId(), stagingGroup.getGroupId(),
+				false,
+				JSONUtil.put(
+					frontendTokenName, JSONUtil.put("value", "#000000")
+				).toString(),
+				RandomTestUtil.randomString(), StringPool.BLANK,
+				"classic_WAR_classictheme",
+				ServiceContextTestUtil.getServiceContext(
+					stagingGroup.getGroupId(), TestPropsValues.getUserId()));
+
+		styleBookEntry =
+			_styleBookEntryLocalService.updateFrontendTokenDefinition(
+				styleBookEntry.getStyleBookEntryId(),
+				_getFrontendTokenDefinition(frontendTokenName),
+				ServiceContextTestUtil.getServiceContext(
+					stagingGroup.getGroupId(), TestPropsValues.getUserId()));
+
+		exportImportStagedModel(styleBookEntry);
+
+		StyleBookEntry importedStyleBookEntry = (StyleBookEntry)getStagedModel(
+			styleBookEntry.getUuid(), liveGroup);
+
+		Assert.assertNotNull(importedStyleBookEntry);
+
+		Assert.assertNull(
+			_getWarningExportImportReportEntry(liveGroup.getGroupId()));
+	}
+
+	@Test
 	public void testExportImportPreservesFrontendTokenDefinition()
 		throws Exception {
 
