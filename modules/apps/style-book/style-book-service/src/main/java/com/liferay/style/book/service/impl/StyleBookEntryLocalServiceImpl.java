@@ -44,6 +44,8 @@ import com.liferay.style.book.exception.StyleBookEntryThemeIdException;
 import com.liferay.style.book.model.StyleBookEntry;
 import com.liferay.style.book.service.base.StyleBookEntryLocalServiceBaseImpl;
 
+import java.io.Serializable;
+
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -167,6 +169,24 @@ public class StyleBookEntryLocalServiceImpl
 			StringPool.BLANK, sourceStyleBookEntry.getThemeId(),
 			serviceContext);
 
+		Serializable validateFrontendTokenDefinition =
+			serviceContext.getAttribute("validateFrontendTokenDefinition");
+
+		serviceContext.setAttribute(
+			"validateFrontendTokenDefinition", Boolean.FALSE);
+
+		try {
+			targetStyleBookEntry = updateFrontendTokenDefinition(
+				targetStyleBookEntry.getStyleBookEntryId(),
+				sourceStyleBookEntry.getFrontendTokenDefinition(),
+				serviceContext);
+		}
+		finally {
+			serviceContext.setAttribute(
+				"validateFrontendTokenDefinition",
+				validateFrontendTokenDefinition);
+		}
+
 		long previewFileEntryId = _copyStyleBookEntryPreviewFileEntry(
 			userId, groupId, sourceStyleBookEntry, targetStyleBookEntry);
 
@@ -176,6 +196,8 @@ public class StyleBookEntryLocalServiceImpl
 			StyleBookEntry copyDraftStyleBookEntry = getDraft(
 				targetStyleBookEntry);
 
+			copyDraftStyleBookEntry.setFrontendTokenDefinition(
+				draftStyleBookEntry.getFrontendTokenDefinition());
 			copyDraftStyleBookEntry.setFrontendTokensValues(
 				draftStyleBookEntry.getFrontendTokensValues());
 
