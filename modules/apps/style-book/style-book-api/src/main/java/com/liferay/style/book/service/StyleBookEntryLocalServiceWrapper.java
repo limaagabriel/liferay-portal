@@ -386,6 +386,14 @@ public class StyleBookEntryLocalServiceWrapper
 	}
 
 	@Override
+	public java.util.Set<String> getAvailableFrontendTokenNames(
+		StyleBookEntry styleBookEntry) {
+
+		return _styleBookEntryLocalService.getAvailableFrontendTokenNames(
+			styleBookEntry);
+	}
+
+	@Override
 	public StyleBookEntry getDraft(long primaryKey)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -773,4 +781,4 @@ public class StyleBookEntryLocalServiceWrapper
 	private StyleBookEntryLocalService _styleBookEntryLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1741947221
+// LIFERAY-SERVICE-BUILDER-HASH:-1645902968

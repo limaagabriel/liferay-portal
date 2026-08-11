@@ -36,6 +36,7 @@ import com.liferay.style.book.model.StyleBookEntryVersion;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Set;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -295,6 +296,10 @@ public interface StyleBookEntryLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ActionableDynamicQuery getActionableDynamicQuery();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public Set<String> getAvailableFrontendTokenNames(
+		StyleBookEntry styleBookEntry);
+
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public StyleBookEntry getDraft(long primaryKey) throws PortalException;
@@ -520,4 +525,4 @@ public interface StyleBookEntryLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:624338901
+// LIFERAY-SERVICE-BUILDER-HASH:1506528235

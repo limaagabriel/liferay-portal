@@ -16,6 +16,7 @@ import com.liferay.style.book.model.StyleBookEntry;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Provides the local service utility for StyleBookEntry. This utility wraps
@@ -337,6 +338,12 @@ public class StyleBookEntryLocalServiceUtil {
 		return getService().getActionableDynamicQuery();
 	}
 
+	public static Set<String> getAvailableFrontendTokenNames(
+		StyleBookEntry styleBookEntry) {
+
+		return getService().getAvailableFrontendTokenNames(styleBookEntry);
+	}
+
 	public static StyleBookEntry getDraft(long primaryKey)
 		throws PortalException {
 
@@ -645,4 +652,4 @@ public class StyleBookEntryLocalServiceUtil {
 			StyleBookEntryLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1347437138
+// LIFERAY-SERVICE-BUILDER-HASH:-335570355
