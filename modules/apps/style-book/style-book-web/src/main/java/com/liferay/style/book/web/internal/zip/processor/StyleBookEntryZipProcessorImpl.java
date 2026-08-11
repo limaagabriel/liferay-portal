@@ -37,6 +37,7 @@ import jakarta.portlet.PortletException;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -106,8 +107,9 @@ public class StyleBookEntryZipProcessorImpl
 	}
 
 	private StyleBookEntry _addStyleBookEntry(
-			long groupId, String frontendTokensValues, String name,
-			boolean overwrite, String styleBookEntryKey, String themeId)
+			long groupId, String frontendTokenDefinition,
+			String frontendTokensValues, String name, boolean overwrite,
+			String styleBookEntryKey, String themeId)
 		throws Exception {
 
 		if (Validator.isBlank(themeId)) {
@@ -124,16 +126,52 @@ public class StyleBookEntryZipProcessorImpl
 
 		try {
 			if (styleBookEntry == null) {
+				ServiceContext serviceContext =
+					ServiceContextThreadLocal.getServiceContext();
+
 				styleBookEntry = _styleBookEntryEntryService.addStyleBookEntry(
 					null, groupId, frontendTokensValues, name,
-					styleBookEntryKey, themeId,
-					ServiceContextThreadLocal.getServiceContext());
+					styleBookEntryKey, themeId, serviceContext);
+
+				if (serviceContext == null) {
+					serviceContext = new ServiceContext();
+				}
+
+				Serializable validateFrontendTokenDefinition =
+					serviceContext.getAttribute(
+						"validateFrontendTokenDefinition");
+
+				serviceContext.setAttribute(
+					"validateFrontendTokenDefinition", Boolean.FALSE);
+
+				try {
+					styleBookEntry =
+						_styleBookEntryEntryService.
+							updateFrontendTokenDefinition(
+								styleBookEntry.getStyleBookEntryId(),
+								frontendTokenDefinition, serviceContext);
+				}
+				finally {
+					serviceContext.setAttribute(
+						"validateFrontendTokenDefinition",
+						validateFrontendTokenDefinition);
+				}
 			}
 			else {
+				ServiceContext serviceContext = new ServiceContext();
+
 				styleBookEntry =
 					_styleBookEntryEntryService.updateStyleBookEntry(
 						styleBookEntry.getStyleBookEntryId(),
-						frontendTokensValues, name, new ServiceContext());
+						frontendTokensValues, name, serviceContext);
+
+				serviceContext.setAttribute(
+					"validateFrontendTokenDefinition", Boolean.FALSE);
+
+				styleBookEntry =
+					_styleBookEntryEntryService.updateFrontendTokenDefinition(
+						styleBookEntry.getStyleBookEntryId(),
+						frontendTokenDefinition, serviceContext);
 			}
 
 			_importResultEntries.add(
@@ -305,6 +343,7 @@ public class StyleBookEntryZipProcessorImpl
 
 		String name = styleBookEntryKey;
 
+		String frontendTokenDefinition = StringPool.BLANK;
 		String frontendTokensValues = StringPool.BLANK;
 
 		String styleBookEntryContent = _getContent(zipFile, fileName);
@@ -317,6 +356,10 @@ public class StyleBookEntryZipProcessorImpl
 
 			defaultStyleBookEntry = styleBookEntryJSONObject.getBoolean(
 				"defaultStyleBookEntry");
+			frontendTokenDefinition = _getStyleBookEntryContent(
+				zipFile, fileName,
+				styleBookEntryJSONObject.getString(
+					"frontendTokenDefinitionPath"));
 			frontendTokensValues = _getStyleBookEntryContent(
 				zipFile, fileName,
 				styleBookEntryJSONObject.getString("frontendTokensValuesPath"));
@@ -325,8 +368,8 @@ public class StyleBookEntryZipProcessorImpl
 		}
 
 		StyleBookEntry styleBookEntry = _addStyleBookEntry(
-			groupId, frontendTokensValues, name, overwrite, styleBookEntryKey,
-			themeId);
+			groupId, frontendTokenDefinition, frontendTokensValues, name,
+			overwrite, styleBookEntryKey, themeId);
 
 		if (styleBookEntry == null) {
 			return;
