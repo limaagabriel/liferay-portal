@@ -6,10 +6,13 @@
 import ClayButton from '@clayui/button';
 import {Option, Picker} from '@clayui/core';
 import ClayForm, {ClayInput, ClaySelectWithOption} from '@clayui/form';
+import ClayIcon from '@clayui/icon';
 import ClayModal from '@clayui/modal';
-import {FieldBase} from 'frontend-js-components-web';
+import {FieldBase, openModal} from 'frontend-js-components-web';
 import {fetch, objectToFormData} from 'frontend-js-web';
 import React, {useState} from 'react';
+
+import NewTokenSetModalContent from './NewTokenSetModalContent';
 
 interface FrontendTokenSetOption {
 	label: string;
@@ -46,10 +49,36 @@ const NewTokenModalContent = ({
 	const [errorMessage, setErrorMessage] = useState('');
 	const [label, setLabel] = useState('');
 	const [loading, setLoading] = useState(false);
+	const [provisionalTokenSets, setProvisionalTokenSets] = useState<
+		FrontendTokenSetOption[]
+	>([]);
 	const [tokenSetName, setTokenSetName] = useState<React.Key>(
 		tokenSets[0]?.name ?? ''
 	);
 	const [value, setValue] = useState('');
+
+	const tokenSetItems = [...tokenSets, ...provisionalTokenSets];
+
+	const openNewTokenSetModal = () => {
+		openModal({
+			contentComponent: ({closeModal: closeNewTokenSetModal}) => (
+				<NewTokenSetModalContent
+					closeModal={closeNewTokenSetModal}
+					existingTokenSetNames={tokenSetItems.map(
+						(tokenSetItem) => tokenSetItem.name
+					)}
+					namespace={namespace}
+					onSuccess={({name}) => {
+						setProvisionalTokenSets((provisionalTokenSets) => [
+							...provisionalTokenSets,
+							{label: name, name},
+						]);
+						setTokenSetName(name);
+					}}
+				/>
+			),
+		});
+	};
 
 	const validateLabel = (label: string) => {
 		const errorMessage = !label.trim()
@@ -172,29 +201,53 @@ const NewTokenModalContent = ({
 						label={Liferay.Language.get('token-set')}
 						required
 					>
-						<Picker
-							id={tokenSetId}
-							items={tokenSets}
-							messages={{
-								itemDescribedby: Liferay.Language.get(
-									'you-are-currently-on-a-text-element,-inside-of-a-list-box'
-								),
-								itemSelected:
-									Liferay.Language.get('x-selected'),
-								scrollToBottomAriaLabel:
-									Liferay.Language.get('scroll-to-bottom'),
-								scrollToTopAriaLabel:
-									Liferay.Language.get('scroll-to-top'),
-							}}
-							onSelectionChange={setTokenSetName}
-							selectedKey={tokenSetName}
-						>
-							{(item) => (
-								<Option key={item.name} textValue={item.label}>
-									{item.label}
-								</Option>
-							)}
-						</Picker>
+						<div className="align-items-center d-flex">
+							<div className="flex-grow-1 mr-2">
+								<Picker
+									id={tokenSetId}
+									items={tokenSetItems}
+									messages={{
+										itemDescribedby: Liferay.Language.get(
+											'you-are-currently-on-a-text-element,-inside-of-a-list-box'
+										),
+										itemSelected:
+											Liferay.Language.get('x-selected'),
+										scrollToBottomAriaLabel:
+											Liferay.Language.get(
+												'scroll-to-bottom'
+											),
+										scrollToTopAriaLabel:
+											Liferay.Language.get(
+												'scroll-to-top'
+											),
+									}}
+									onSelectionChange={setTokenSetName}
+									selectedKey={tokenSetName}
+								>
+									{(item) => (
+										<Option
+											key={item.name}
+											textValue={item.label}
+										>
+											{item.label}
+										</Option>
+									)}
+								</Picker>
+							</div>
+
+							<ClayButton
+								displayType="secondary"
+								onClick={openNewTokenSetModal}
+								size="sm"
+							>
+								<ClayIcon
+									className="inline-item inline-item-before"
+									symbol="plus"
+								/>
+
+								{Liferay.Language.get('new-token-set')}
+							</ClayButton>
+						</div>
 					</FieldBase>
 
 					<FieldBase
