@@ -72,6 +72,7 @@ export default function ({
 	);
 
 	initializeConfig({
+		customTokenDefinitionId,
 		defaultTokenDefinitionPriority,
 		fragmentCollectionPreviewURL,
 		isPrivateLayoutsEnabled,
