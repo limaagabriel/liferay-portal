@@ -11,20 +11,25 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 import FrontendTokenSet from './FrontendTokenSet';
 import {config} from './config';
-import {useFrontendTokensValues} from './contexts/StyleBookEditorContext';
+import {
+	useFrontendTokenDefinitions,
+	useFrontendTokensValues,
+} from './contexts/StyleBookEditorContext';
+import {getFrontendTokens} from './utils/getFrontendTokens';
 
 export default React.memo(function Sidebar() {
 	const sidebarRef = useRef();
+	const frontendTokenDefinitions = useFrontendTokenDefinitions();
 	const [activeDefinitionId, setActiveDefinitionId] = useState(
 		config.themeFrontendTokenDefinitionId
 	);
 
 	const activeDefinition = useMemo(
 		() =>
-			config.frontendTokenDefinitions.find(
+			frontendTokenDefinitions.find(
 				(definition) => definition.id === activeDefinitionId
 			),
-		[activeDefinitionId]
+		[activeDefinitionId, frontendTokenDefinitions]
 	);
 
 	return (
@@ -33,7 +38,7 @@ export default React.memo(function Sidebar() {
 				className="panel-group-sm style-book-editor__sidebar-content"
 				data-qa-id="styleBookEditorSidebarContent"
 			>
-				{!!config.frontendTokenDefinitions.length && (
+				{!!frontendTokenDefinitions.length && (
 					<TokenDefinitionSelector
 						activeDefinitionId={activeDefinitionId}
 						setActiveDefinitionId={setActiveDefinitionId}
@@ -60,9 +65,10 @@ export default React.memo(function Sidebar() {
 });
 
 function TokenDefinitionSelector({activeDefinitionId, setActiveDefinitionId}) {
+	const frontendTokenDefinitions = useFrontendTokenDefinitions();
 	const [active, setActive] = useState(false);
 
-	const activeDefinition = config.frontendTokenDefinitions.find(
+	const activeDefinition = frontendTokenDefinitions.find(
 		(definition) => definition.id === activeDefinitionId
 	);
 
@@ -76,7 +82,7 @@ function TokenDefinitionSelector({activeDefinitionId, setActiveDefinitionId}) {
 		);
 	}
 
-	if (config.frontendTokenDefinitions.length === 1) {
+	if (frontendTokenDefinitions.length === 1) {
 		return (
 			<div className="mb-3 p-2">
 				<TokenDefinitionInformation
@@ -108,7 +114,7 @@ function TokenDefinitionSelector({activeDefinitionId, setActiveDefinitionId}) {
 				}
 			>
 				<ClayDropDown.ItemList>
-					{config.frontendTokenDefinitions.map((definition) => (
+					{frontendTokenDefinitions.map((definition) => (
 						<ClayDropDown.Item
 							active={definition.id === activeDefinitionId}
 							key={definition.id}
@@ -149,6 +155,8 @@ function UpdateStyle({sidebarRef}) {
 }
 
 function TokenDefinitionInformation({activeDefinition, isDropdownOpen}) {
+	const frontendTokenDefinitions = useFrontendTokenDefinitions();
+
 	return (
 		<div className="small text-secondary">
 			<div className="text-dark">
@@ -161,7 +169,7 @@ function TokenDefinitionInformation({activeDefinition, isDropdownOpen}) {
 				<p className="mb-0">
 					{getDefinitionName(activeDefinition)}
 
-					{config.frontendTokenDefinitions.length > 1 && (
+					{frontendTokenDefinitions.length > 1 && (
 						<span className="ml-1">
 							<ClayIcon
 								symbol={
@@ -185,6 +193,7 @@ function getDefinitionName({id, name}) {
 }
 
 function FrontendTokenCategories({activeDefinition}) {
+	const frontendTokenDefinitions = useFrontendTokenDefinitions();
 	const frontendTokensValues = useFrontendTokensValues();
 
 	const frontendTokenCategories = activeDefinition.frontendTokenCategories;
@@ -192,13 +201,29 @@ function FrontendTokenCategories({activeDefinition}) {
 	const [selectedCategory, setSelectedCategory] = useState(
 		frontendTokenCategories[0]
 	);
+	const activeDefinitionIdRef = useRef(activeDefinition.id);
 
 	useEffect(() => {
+		if (activeDefinitionIdRef.current === activeDefinition.id) {
+			return;
+		}
+
+		activeDefinitionIdRef.current = activeDefinition.id;
+
 		setSelectedCategory(frontendTokenCategories[0]);
 	}, [activeDefinition, frontendTokenCategories]);
 
+	const frontendTokens = useMemo(
+		() =>
+			getFrontendTokens(
+				frontendTokenDefinitions,
+				config.themeFrontendTokenDefinitionId
+			),
+		[frontendTokenDefinitions]
+	);
+
 	const tokenValues = useMemo(() => {
-		const nextTokenValues = {...config.frontendTokens};
+		const nextTokenValues = {...frontendTokens};
 
 		for (const [name, {value}] of Object.entries(frontendTokensValues)) {
 			if (nextTokenValues[name]) {
@@ -210,7 +235,7 @@ function FrontendTokenCategories({activeDefinition}) {
 		}
 
 		return nextTokenValues;
-	}, [frontendTokensValues]);
+	}, [frontendTokens, frontendTokensValues]);
 
 	const frontendTokenCategoriesWithPrefix = useMemo(() => {
 		return frontendTokenCategories.map((category) => ({

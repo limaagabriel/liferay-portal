@@ -74,11 +74,6 @@ export default function ({
 	initializeConfig({
 		defaultTokenDefinitionPriority,
 		fragmentCollectionPreviewURL,
-		frontendTokenDefinitions: filteredFrontendTokenDefinitions,
-		frontendTokens: getFrontendTokens(
-			filteredFrontendTokenDefinitions,
-			themeFrontendTokenDefinitionId
-		),
 		isPrivateLayoutsEnabled,
 		namespace,
 		previewOptions,
@@ -100,6 +95,7 @@ export default function ({
 		<StyleBookEditorContextProvider
 			initialState={{
 				draftStatus: DRAFT_STATUS.notSaved,
+				frontendTokenDefinitions: filteredFrontendTokenDefinitions,
 				frontendTokensValues,
 				redoHistory: [],
 				undoHistory: [],
@@ -131,45 +127,3 @@ function getMostRecentLayout(previewOptions) {
 
 	return null;
 }
-
-const getFrontendTokens = (
-	frontendTokenDefinitions,
-	themeFrontendTokenDefinitionId
-) => {
-	const tokens = {};
-
-	frontendTokenDefinitions.forEach((definition) => {
-		const {frontendTokenCategories, id: definitionId} = definition;
-
-		if (!frontendTokenCategories) {
-			return;
-		}
-
-		for (const category of frontendTokenCategories) {
-			for (const tokenSet of category.frontendTokenSets) {
-				for (const token of tokenSet.frontendTokens) {
-					const namespacedName = `${definitionId}:${token.name}`;
-
-					const tokenData = {
-						...token,
-						name: namespacedName,
-						tokenCategoryLabel: category.label,
-						tokenSetLabel: tokenSet.label,
-						value: token.defaultValue,
-					};
-
-					tokens[namespacedName] = tokenData;
-
-					if (definitionId === themeFrontendTokenDefinitionId) {
-						tokens[token.name] = {
-							...tokenData,
-							name: token.name,
-						};
-					}
-				}
-			}
-		}
-	});
-
-	return tokens;
-};

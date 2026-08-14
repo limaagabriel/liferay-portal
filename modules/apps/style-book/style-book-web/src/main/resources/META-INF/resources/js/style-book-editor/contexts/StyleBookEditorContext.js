@@ -21,6 +21,7 @@ import saveDraft from '../saveDraft';
 const StyleBookEditorDispatchContext = React.createContext(() => {});
 export const StyleBookEditorStoreContext = React.createContext({
 	draftStatus: null,
+	frontendTokenDefinitions: [],
 	frontendTokensValues: {},
 	redoHistory: [],
 	undoHistory: [],
@@ -44,6 +45,10 @@ export function useDispatch() {
 
 export function useDraftStatus() {
 	return useContext(StyleBookEditorStoreContext).draftStatus;
+}
+
+export function useFrontendTokenDefinitions() {
+	return useContext(StyleBookEditorStoreContext).frontendTokenDefinitions;
 }
 
 export function useFrontendTokensValues() {
