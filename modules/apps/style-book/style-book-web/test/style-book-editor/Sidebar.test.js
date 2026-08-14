@@ -8,90 +8,16 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 
 import Sidebar from '../../src/main/resources/META-INF/resources/js/style-book-editor/Sidebar';
-import {StyleBookEditorContextProvider} from '../../src/main/resources/META-INF/resources/js/style-book-editor/contexts/StyleBookEditorContext';
+import {SET_FRONTEND_TOKEN_DEFINITIONS} from '../../src/main/resources/META-INF/resources/js/style-book-editor/constants/actionTypes';
+import {
+	StyleBookEditorContextProvider,
+	useDispatch,
+} from '../../src/main/resources/META-INF/resources/js/style-book-editor/contexts/StyleBookEditorContext';
 
 jest.mock(
 	'../../src/main/resources/META-INF/resources/js/style-book-editor/config',
 	() => ({
 		config: {
-			frontendTokenDefinitions: [
-				{
-					frontendTokenCategories: [
-						{
-							frontendTokenSets: [
-								{
-									frontendTokens: [
-										{
-											defaultValue: '#000',
-											label: 'Token 1',
-											mappings: [
-												{
-													type: 'cssVariable',
-													value: 'token-1',
-												},
-											],
-											name: 'token1',
-											type: 'color',
-										},
-									],
-									label: 'Set 1',
-									name: 'set1',
-								},
-							],
-							label: 'Category 1',
-							name: 'category1',
-						},
-					],
-					id: 'theme',
-					name: 'Theme Tokens',
-				},
-				{
-					frontendTokenCategories: [
-						{
-							frontendTokenSets: [
-								{
-									frontendTokens: [
-										{
-											defaultValue: '#fff',
-											label: 'Clay Token',
-											mappings: [
-												{
-													type: 'cssVariable',
-													value: 'clay-token',
-												},
-											],
-											name: 'clayToken',
-											type: 'color',
-										},
-									],
-									label: 'Clay Set',
-									name: 'claySet',
-								},
-							],
-							label: 'Clay Category',
-							name: 'clayCategory',
-						},
-					],
-					id: 'clay',
-					name: 'Clay Tokens',
-				},
-			],
-			frontendTokens: {
-				'clay:clayToken': {
-					defaultValue: '#fff',
-					label: 'Clay Token',
-					mappings: [{type: 'cssVariable', value: 'clay-token'}],
-					name: 'clay:clayToken',
-					type: 'color',
-				},
-				'theme:token1': {
-					defaultValue: '#000',
-					label: 'Token 1',
-					mappings: [{type: 'cssVariable', value: 'token-1'}],
-					name: 'theme:token1',
-					type: 'color',
-				},
-			},
 			sortFrontendTokenValues: (frontendTokensValues) =>
 				Object.values(frontendTokensValues),
 			themeFrontendTokenDefinitionId: 'theme',
@@ -106,10 +32,154 @@ global.Liferay = {
 	},
 };
 
+const FRONTEND_TOKEN_DEFINITIONS = [
+	{
+		frontendTokenCategories: [
+			{
+				frontendTokenSets: [
+					{
+						frontendTokens: [
+							{
+								defaultValue: '#000',
+								label: 'Token 1',
+								mappings: [
+									{
+										type: 'cssVariable',
+										value: 'token-1',
+									},
+								],
+								name: 'token1',
+								type: 'color',
+							},
+						],
+						label: 'Set 1',
+						name: 'set1',
+					},
+				],
+				label: 'Category 1',
+				name: 'category1',
+			},
+		],
+		id: 'theme',
+		name: 'Theme Tokens',
+	},
+	{
+		frontendTokenCategories: [
+			{
+				frontendTokenSets: [
+					{
+						frontendTokens: [
+							{
+								defaultValue: '#fff',
+								label: 'Clay Token',
+								mappings: [
+									{
+										type: 'cssVariable',
+										value: 'clay-token',
+									},
+								],
+								name: 'clayToken',
+								type: 'color',
+							},
+						],
+						label: 'Clay Set',
+						name: 'claySet',
+					},
+				],
+				label: 'Clay Category',
+				name: 'clayCategory',
+			},
+		],
+		id: 'clay',
+		name: 'Clay Tokens',
+	},
+];
+
+const THEME_DEFINITION_WITH_TWO_CATEGORIES = {
+	frontendTokenCategories: [
+		{
+			frontendTokenSets: [
+				{
+					frontendTokens: [
+						{
+							defaultValue: '#000',
+							label: 'Token 1',
+							mappings: [{type: 'cssVariable', value: 'token-1'}],
+							name: 'token1',
+							type: 'color',
+						},
+					],
+					label: 'Set 1',
+					name: 'set1',
+				},
+			],
+			label: 'Category 1',
+			name: 'category1',
+		},
+		{
+			frontendTokenSets: [
+				{
+					frontendTokens: [
+						{
+							defaultValue: '#111',
+							label: 'Token 2',
+							mappings: [{type: 'cssVariable', value: 'token-2'}],
+							name: 'token2',
+							type: 'color',
+						},
+					],
+					label: 'Set 2',
+					name: 'set2',
+				},
+			],
+			label: 'Category 2',
+			name: 'category2',
+		},
+	],
+	id: 'theme',
+	name: 'Theme Tokens',
+};
+
+const THEME_DEFINITION_WITH_NEW_TOKEN = {
+	...THEME_DEFINITION_WITH_TWO_CATEGORIES,
+	frontendTokenCategories: [
+		THEME_DEFINITION_WITH_TWO_CATEGORIES.frontendTokenCategories[0],
+		{
+			frontendTokenSets: [
+				{
+					frontendTokens: [
+						{
+							defaultValue: '#111',
+							label: 'Token 2',
+							mappings: [{type: 'cssVariable', value: 'token-2'}],
+							name: 'token2',
+							type: 'color',
+						},
+						{
+							defaultValue: '#222',
+							label: 'New Token',
+							mappings: [
+								{type: 'cssVariable', value: 'new-token'},
+							],
+							name: 'newToken',
+							type: 'color',
+						},
+					],
+					label: 'Set 2',
+					name: 'set2',
+				},
+			],
+			label: 'Category 2',
+			name: 'category2',
+		},
+	],
+};
+
 const renderComponent = () => {
 	render(
 		<StyleBookEditorContextProvider
 			initialState={{
+				frontendTokenDefinitions: FRONTEND_TOKEN_DEFINITIONS,
 				frontendTokensValues: {},
 			}}
 		>
@@ -117,6 +187,24 @@ const renderComponent = () => {
 		</StyleBookEditorContextProvider>
 	);
 };
+
+function DispatchFrontendTokenDefinitions({frontendTokenDefinitions}) {
+	const dispatch = useDispatch();
+
+	return (
+		<button
+			onClick={() =>
+				dispatch({
+					frontendTokenDefinitions,
+					type: SET_FRONTEND_TOKEN_DEFINITIONS,
+				})
+			}
+			type="button"
+		>
+			update definitions
+		</button>
+	);
+}
 
 describe('Sidebar', () => {
 	it('renders Sidebar with definition selector when multiple definitions are present', () => {
@@ -159,5 +247,34 @@ describe('Sidebar', () => {
 
 		expect(screen.getAllByText('Clay Category')[0]).toBeInTheDocument();
 		expect(screen.queryByText('Category 1')).not.toBeInTheDocument();
+	});
+
+	it('keeps the selected category when frontend token definitions are updated', () => {
+		render(
+			<StyleBookEditorContextProvider
+				initialState={{
+					frontendTokenDefinitions: [
+						THEME_DEFINITION_WITH_TWO_CATEGORIES,
+					],
+					frontendTokensValues: {},
+				}}
+			>
+				<DispatchFrontendTokenDefinitions
+					frontendTokenDefinitions={[THEME_DEFINITION_WITH_NEW_TOKEN]}
+				/>
+
+				<Sidebar />
+			</StyleBookEditorContextProvider>
+		);
+
+		fireEvent.click(screen.getAllByText('Category 1')[0]);
+		fireEvent.click(screen.getByText('Category 2'));
+
+		expect(screen.getByText('Token 2')).toBeInTheDocument();
+
+		fireEvent.click(screen.getByText('update definitions'));
+
+		expect(screen.getByText('New Token')).toBeInTheDocument();
+		expect(screen.queryByText('Token 1')).not.toBeInTheDocument();
 	});
 });
