@@ -15,13 +15,23 @@ import {
 } from '../../src/main/resources/META-INF/resources/js/style-book-editor/contexts/StyleBookEditorContext';
 import saveDraft from '../../src/main/resources/META-INF/resources/js/style-book-editor/saveDraft';
 
+const mockOpenModal = jest.fn();
+
+jest.mock('frontend-js-components-web', () => ({
+	...jest.requireActual('frontend-js-components-web'),
+	openModal: (...args) => mockOpenModal(...args),
+}));
+
 jest.mock(
 	'../../src/main/resources/META-INF/resources/js/style-book-editor/config',
 	() => ({
 		config: {
+			addFrontendTokenURL: '/add-frontend-token',
 			customTokenDefinitionId: 'custom',
+			namespace: '_stylebook_',
 			sortFrontendTokenValues: (frontendTokensValues) =>
 				Object.values(frontendTokensValues),
+			styleBookEntryId: 1,
 			themeFrontendTokenDefinitionId: 'theme',
 			themeName: 'Classic',
 		},
@@ -32,12 +42,6 @@ jest.mock(
 	'../../src/main/resources/META-INF/resources/js/style-book-editor/saveDraft',
 	() => jest.fn(() => Promise.resolve())
 );
-
-global.Liferay = {
-	Language: {
-		get: jest.fn((key) => key),
-	},
-};
 
 const FRONTEND_TOKEN_DEFINITIONS = [
 	{
@@ -228,6 +232,41 @@ const CUSTOM_TOKEN_FRONTEND_TOKENS_VALUES = {
 	},
 };
 
+const THEME_DEFINITION_WITH_CREATED_TOKEN = {
+	frontendTokenCategories: [
+		{
+			frontendTokenSets: [
+				{
+					frontendTokens: [
+						{
+							defaultValue: '#000',
+							label: 'Token 1',
+							mappings: [{type: 'cssVariable', value: 'token-1'}],
+							name: 'token1',
+							type: 'color',
+						},
+						{
+							defaultValue: '#FFF456',
+							label: 'My Token',
+							mappings: [
+								{type: 'cssVariable', value: 'my-token'},
+							],
+							name: 'myToken',
+							type: 'String',
+						},
+					],
+					label: 'Set 1',
+					name: 'set1',
+				},
+			],
+			label: 'Category 1',
+			name: 'category1',
+		},
+	],
+	id: 'theme',
+	name: 'Theme Tokens',
+};
+
 const renderComponent = () => {
 	render(
 		<StyleBookEditorContextProvider
@@ -262,6 +301,13 @@ function DispatchFrontendTokenDefinitions({frontendTokenDefinitions}) {
 describe('Sidebar', () => {
 	beforeEach(() => {
 		saveDraft.mockClear();
+		mockOpenModal.mockClear();
+
+		Liferay.Util.ns.mockImplementation((namespace, object) => object);
+	});
+
+	afterEach(() => {
+		Liferay.Util.ns.mockImplementation(() => ({}));
 	});
 
 	it("stamps a custom token's saved value with the custom definition id while keeping its themeId:name key", () => {
@@ -393,5 +439,53 @@ describe('Sidebar', () => {
 
 		expect(screen.getByText('New Token')).toBeInTheDocument();
 		expect(screen.queryByText('Token 1')).not.toBeInTheDocument();
+	});
+
+	it('renders the "+ New Token" trigger for the theme definition', () => {
+		renderComponent();
+
+		expect(screen.getByText('new-token')).toBeInTheDocument();
+	});
+
+	it('does not render the "+ New Token" trigger for a contributor definition', () => {
+		renderComponent();
+
+		fireEvent.click(screen.getAllByText('Classic')[0]);
+		fireEvent.click(screen.getByText('Clay Tokens'));
+
+		expect(screen.queryByText('new-token')).not.toBeInTheDocument();
+	});
+
+	it('adds a new token via the sidebar trigger without a page reload', async () => {
+		const mockCloseModal = jest.fn();
+
+		global.fetch.mockReturnValue(
+			Promise.resolve({
+				json: () =>
+					Promise.resolve({
+						frontendTokenDefinitions: [
+							THEME_DEFINITION_WITH_CREATED_TOKEN,
+						],
+					}),
+			})
+		);
+
+		renderComponent();
+
+		fireEvent.click(screen.getByText('new-token'));
+
+		const ContentComponent =
+			mockOpenModal.mock.calls[0][0].contentComponent;
+
+		render(<ContentComponent closeModal={mockCloseModal} />);
+
+		fireEvent.change(screen.getByLabelText(/token-name/), {
+			target: {value: 'My Token'},
+		});
+
+		fireEvent.click(screen.getByText('create-token'));
+
+		expect(await screen.findByText('My Token')).toBeInTheDocument();
+		expect(mockCloseModal).toHaveBeenCalled();
 	});
 });
