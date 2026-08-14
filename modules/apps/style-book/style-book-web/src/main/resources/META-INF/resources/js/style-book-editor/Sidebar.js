@@ -242,14 +242,25 @@ function FrontendTokenCategories({activeDefinition}) {
 			...category,
 			frontendTokenSets: category.frontendTokenSets.map((tokenSet) => ({
 				...tokenSet,
-				frontendTokens: tokenSet.frontendTokens.map((token) => ({
-					...token,
-					name: `${activeDefinition.id}:${token.name}`,
-					tokenDefinitionId: activeDefinition.id,
-				})),
+				frontendTokens: tokenSet.frontendTokens.map((token) => {
+					const custom = Boolean(
+						frontendTokensValues[
+							`${config.customTokenDefinitionId}:${token.name}`
+						]
+					);
+
+					return {
+						...token,
+						custom,
+						name: `${activeDefinition.id}:${token.name}`,
+						tokenDefinitionId: custom
+							? config.customTokenDefinitionId
+							: activeDefinition.id,
+					};
+				}),
 			})),
 		}));
-	}, [activeDefinition, frontendTokenCategories]);
+	}, [activeDefinition, frontendTokenCategories, frontendTokensValues]);
 
 	const activeSelectedCategory = useMemo(() => {
 		if (!selectedCategory) {

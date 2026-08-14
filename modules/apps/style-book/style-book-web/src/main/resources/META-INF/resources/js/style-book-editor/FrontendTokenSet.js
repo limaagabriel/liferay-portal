@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayIcon from '@clayui/icon';
 import ClayPanel from '@clayui/panel';
+import {openToast} from 'frontend-js-components-web';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 
@@ -40,18 +42,31 @@ export default function FrontendTokenSet({
 				(mapping) => mapping.type === 'cssVariable'
 			);
 
-			if (value) {
-				saveTokenValue({
-					label,
-					name,
-					value: {
-						cssVariableMapping: cssVariableMapping.value,
-						name: tokenValues[value]?.name,
-						tokenDefinitionId,
-						value: tokenValues[value]?.value || value,
-					},
-				});
+			if (!value) {
+				return;
 			}
+
+			if (!cssVariableMapping) {
+				openToast({
+					message: Liferay.Language.get(
+						'unable-to-save-due-to-invalid-or-missing-configuration-values'
+					),
+					type: 'danger',
+				});
+
+				return;
+			}
+
+			saveTokenValue({
+				label,
+				name,
+				value: {
+					cssVariableMapping: cssVariableMapping.value,
+					name: tokenValues[value]?.name,
+					tokenDefinitionId,
+					value: tokenValues[value]?.value || value,
+				},
+			});
 		},
 		[saveTokenValue, tokenValues]
 	);
@@ -82,10 +97,29 @@ export default function FrontendTokenSet({
 					};
 
 					return (
-						<FrontendTokenComponent
+						<div
+							className="align-items-start d-flex"
 							key={frontendToken.name}
-							{...props}
-						/>
+						>
+							<div className="flex-grow-1">
+								<FrontendTokenComponent {...props} />
+							</div>
+
+							{frontendToken.custom && (
+								<span
+									aria-label={Liferay.Language.get(
+										'style-book-custom-token'
+									)}
+									className="ml-2 mt-2"
+									role="img"
+									title={Liferay.Language.get(
+										'style-book-custom-token'
+									)}
+								>
+									<ClayIcon symbol="custom-field" />
+								</span>
+							)}
+						</div>
 					);
 				})}
 			</ClayPanel.Body>

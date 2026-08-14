@@ -13,17 +13,24 @@ import {
 	StyleBookEditorContextProvider,
 	useDispatch,
 } from '../../src/main/resources/META-INF/resources/js/style-book-editor/contexts/StyleBookEditorContext';
+import saveDraft from '../../src/main/resources/META-INF/resources/js/style-book-editor/saveDraft';
 
 jest.mock(
 	'../../src/main/resources/META-INF/resources/js/style-book-editor/config',
 	() => ({
 		config: {
+			customTokenDefinitionId: 'custom',
 			sortFrontendTokenValues: (frontendTokensValues) =>
 				Object.values(frontendTokensValues),
 			themeFrontendTokenDefinitionId: 'theme',
 			themeName: 'Classic',
 		},
 	})
+);
+
+jest.mock(
+	'../../src/main/resources/META-INF/resources/js/style-book-editor/saveDraft',
+	() => jest.fn(() => Promise.resolve())
 );
 
 global.Liferay = {
@@ -175,6 +182,52 @@ const THEME_DEFINITION_WITH_NEW_TOKEN = {
 	],
 };
 
+const THEME_DEFINITION_WITH_CUSTOM_TOKEN = {
+	frontendTokenCategories: [
+		{
+			frontendTokenSets: [
+				{
+					frontendTokens: [
+						{
+							defaultValue: '#000',
+							label: 'Token 1',
+							mappings: [{type: 'cssVariable', value: 'token-1'}],
+							name: 'token1',
+							type: 'color',
+						},
+						{
+							defaultValue: '#fff',
+							label: 'Custom Token 1',
+							mappings: [
+								{
+									type: 'cssVariable',
+									value: 'custom-token-1',
+								},
+							],
+							name: 'customToken1',
+							type: 'color',
+						},
+					],
+					label: 'Set 1',
+					name: 'set1',
+				},
+			],
+			label: 'Category 1',
+			name: 'category1',
+		},
+	],
+	id: 'theme',
+	name: 'Theme Tokens',
+};
+
+const CUSTOM_TOKEN_FRONTEND_TOKENS_VALUES = {
+	'custom:customToken1': {
+		cssVariableMapping: 'custom-token-1',
+		tokenDefinitionId: 'custom',
+		value: '#fff',
+	},
+};
+
 const renderComponent = () => {
 	render(
 		<StyleBookEditorContextProvider
@@ -207,6 +260,70 @@ function DispatchFrontendTokenDefinitions({frontendTokenDefinitions}) {
 }
 
 describe('Sidebar', () => {
+	beforeEach(() => {
+		saveDraft.mockClear();
+	});
+
+	it("stamps a custom token's saved value with the custom definition id while keeping its themeId:name key", () => {
+		render(
+			<StyleBookEditorContextProvider
+				initialState={{
+					frontendTokenDefinitions: [
+						THEME_DEFINITION_WITH_CUSTOM_TOKEN,
+					],
+					frontendTokensValues: CUSTOM_TOKEN_FRONTEND_TOKENS_VALUES,
+				}}
+			>
+				<Sidebar />
+			</StyleBookEditorContextProvider>
+		);
+
+		const input = screen.getByLabelText('Custom Token 1');
+
+		fireEvent.change(input, {target: {value: '#123456'}});
+		fireEvent.blur(input);
+
+		expect(saveDraft).toBeCalledWith({
+			...CUSTOM_TOKEN_FRONTEND_TOKENS_VALUES,
+			'theme:customToken1': {
+				cssVariableMapping: 'custom-token-1',
+				name: undefined,
+				tokenDefinitionId: 'custom',
+				value: '#123456',
+			},
+		});
+	});
+
+	it("keeps a theme token's saved value stamped with the theme definition id", () => {
+		render(
+			<StyleBookEditorContextProvider
+				initialState={{
+					frontendTokenDefinitions: [
+						THEME_DEFINITION_WITH_CUSTOM_TOKEN,
+					],
+					frontendTokensValues: CUSTOM_TOKEN_FRONTEND_TOKENS_VALUES,
+				}}
+			>
+				<Sidebar />
+			</StyleBookEditorContextProvider>
+		);
+
+		const input = screen.getByLabelText('Token 1');
+
+		fireEvent.change(input, {target: {value: '#654321'}});
+		fireEvent.blur(input);
+
+		expect(saveDraft).toBeCalledWith({
+			...CUSTOM_TOKEN_FRONTEND_TOKENS_VALUES,
+			'theme:token1': {
+				cssVariableMapping: 'token-1',
+				name: undefined,
+				tokenDefinitionId: 'theme',
+				value: '#654321',
+			},
+		});
+	});
+
 	it('renders Sidebar with definition selector when multiple definitions are present', () => {
 		renderComponent();
 
