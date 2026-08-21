@@ -199,6 +199,42 @@ export class StyleBooksPage {
 		).toBeVisible();
 	}
 
+	async createCustomToken({
+		description,
+		tokenName,
+		tokenSetName,
+		value,
+	}: {
+		description?: string;
+		tokenName: string;
+		tokenSetName?: string;
+		value?: string;
+	}) {
+		await this.page.getByRole('button', {name: 'New Token'}).click();
+
+		const dialog = this.page.getByRole('dialog');
+
+		await dialog.getByLabel('Token Name').fill(tokenName);
+
+		if (tokenSetName) {
+			await dialog.getByLabel('Token Set').click();
+
+			await this.page.getByRole('option', {name: tokenSetName}).click();
+		}
+
+		if (value) {
+			await dialog.getByLabel('Value').fill(value);
+		}
+
+		if (description) {
+			await dialog.getByLabel('Description').fill(description);
+		}
+
+		await dialog.getByRole('button', {name: 'Create Token'}).click();
+
+		await expect(dialog).toBeHidden();
+	}
+
 	async selectTokenCategory(category: string) {
 		await this.page
 			.locator('.style-book-editor__sidebar-content .form-control-select')
