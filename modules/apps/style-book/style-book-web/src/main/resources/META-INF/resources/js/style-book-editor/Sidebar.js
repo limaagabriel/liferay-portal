@@ -13,11 +13,10 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import FrontendTokenSet from './FrontendTokenSet';
 import NewTokenModalContent from './NewTokenModalContent';
 import {config} from './config';
-import {SET_FRONTEND_TOKEN_DEFINITIONS} from './constants/actionTypes';
 import {
-	useDispatch,
 	useFrontendTokenDefinitions,
 	useFrontendTokensValues,
+	useSetFrontendTokenDefinitions,
 } from './contexts/StyleBookEditorContext';
 import {getFrontendTokens} from './utils/getFrontendTokens';
 
@@ -197,7 +196,7 @@ function getDefinitionName({id, name}) {
 }
 
 function FrontendTokenCategories({activeDefinition}) {
-	const dispatch = useDispatch();
+	const setFrontendTokenDefinitions = useSetFrontendTokenDefinitions();
 	const frontendTokenDefinitions = useFrontendTokenDefinitions();
 	const frontendTokensValues = useFrontendTokensValues();
 	const isThemeDefinition =
@@ -205,20 +204,22 @@ function FrontendTokenCategories({activeDefinition}) {
 
 	const frontendTokenCategories = activeDefinition.frontendTokenCategories;
 	const [active, setActive] = useState(false);
+	const [previousDefinitionId, setPreviousDefinitionId] = useState(
+		activeDefinition.id
+	);
 	const [selectedCategory, setSelectedCategory] = useState(
 		frontendTokenCategories[0]
 	);
-	const activeDefinitionIdRef = useRef(activeDefinition.id);
 
-	useEffect(() => {
-		if (activeDefinitionIdRef.current === activeDefinition.id) {
-			return;
-		}
+	// Reset the selected category only when the active definition itself
+	// changes, not when its categories are replaced in place (e.g. after
+	// creating a token, which updates frontendTokenCategories for the same
+	// definition and should keep the current selection).
 
-		activeDefinitionIdRef.current = activeDefinition.id;
-
+	if (activeDefinition.id !== previousDefinitionId) {
+		setPreviousDefinitionId(activeDefinition.id);
 		setSelectedCategory(frontendTokenCategories[0]);
-	}, [activeDefinition, frontendTokenCategories]);
+	}
 
 	const frontendTokens = useMemo(
 		() =>
@@ -244,17 +245,39 @@ function FrontendTokenCategories({activeDefinition}) {
 		return nextTokenValues;
 	}, [frontendTokens, frontendTokensValues]);
 
+	// A join()'d key (rather than frontendTokensValues itself) so that saving
+	// a non-custom token value doesn't invalidate this memo, and edits to a
+	// custom token's value (but not its presence) don't either.
+
+	const customFrontendTokenNamesKey = useMemo(() => {
+		const prefix = `${config.customTokenDefinitionId}:`;
+
+		return Object.keys(frontendTokensValues)
+			.filter(
+				(name) => name.startsWith(prefix) && frontendTokensValues[name]
+			)
+			.map((name) => name.slice(prefix.length))
+			.sort()
+			.join(',');
+	}, [frontendTokensValues]);
+
+	const customFrontendTokenNames = useMemo(
+		() =>
+			new Set(
+				customFrontendTokenNamesKey
+					? customFrontendTokenNamesKey.split(',')
+					: []
+			),
+		[customFrontendTokenNamesKey]
+	);
+
 	const frontendTokenCategoriesWithPrefix = useMemo(() => {
 		return frontendTokenCategories.map((category) => ({
 			...category,
 			frontendTokenSets: category.frontendTokenSets.map((tokenSet) => ({
 				...tokenSet,
 				frontendTokens: tokenSet.frontendTokens.map((token) => {
-					const custom = Boolean(
-						frontendTokensValues[
-							`${config.customTokenDefinitionId}:${token.name}`
-						]
-					);
+					const custom = customFrontendTokenNames.has(token.name);
 
 					return {
 						...token,
@@ -267,7 +290,7 @@ function FrontendTokenCategories({activeDefinition}) {
 				}),
 			})),
 		}));
-	}, [activeDefinition, frontendTokenCategories, frontendTokensValues]);
+	}, [activeDefinition, frontendTokenCategories, customFrontendTokenNames]);
 
 	const activeSelectedCategory = useMemo(() => {
 		if (!selectedCategory) {
@@ -281,20 +304,19 @@ function FrontendTokenCategories({activeDefinition}) {
 
 	const openNewTokenModal = () => {
 		openModal({
-			contentComponent: ({closeModal}) =>
-				NewTokenModalContent({
-					addFrontendTokenURL: config.addFrontendTokenURL,
-					categoryName: activeSelectedCategory.name,
-					closeModal,
-					namespace: config.namespace,
-					onSuccess: (frontendTokenDefinitions) =>
-						dispatch({
-							frontendTokenDefinitions,
-							type: SET_FRONTEND_TOKEN_DEFINITIONS,
-						}),
-					styleBookEntryId: config.styleBookEntryId,
-					tokenSets: activeSelectedCategory.frontendTokenSets,
-				}),
+			contentComponent: ({closeModal}) => (
+				<NewTokenModalContent
+					addFrontendTokenURL={config.addFrontendTokenURL}
+					categoryName={activeSelectedCategory.name}
+					closeModal={closeModal}
+					namespace={config.namespace}
+					onSuccess={setFrontendTokenDefinitions}
+					styleBookEntryId={config.styleBookEntryId}
+					tokenSets={activeSelectedCategory.frontendTokenSets.map(
+						({label, name}) => ({label, name})
+					)}
+				/>
+			),
 		});
 	};
 

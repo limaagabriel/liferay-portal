@@ -10,6 +10,7 @@ import {
 	ADD_REDO_ACTION,
 	ADD_UNDO_ACTION,
 	SET_DRAFT_STATUS,
+	SET_FRONTEND_TOKEN_DEFINITIONS,
 	SET_TOKEN_VALUES,
 	UPDATE_UNDO_REDO_HISTORY,
 } from '../constants/actionTypes';
@@ -57,6 +58,16 @@ export function useFrontendTokensValues() {
 
 export function useRedoHistory() {
 	return useContext(StyleBookEditorStoreContext).redoHistory;
+}
+
+export function useSetFrontendTokenDefinitions() {
+	const dispatch = useDispatch();
+
+	return (frontendTokenDefinitions) =>
+		dispatch({
+			frontendTokenDefinitions,
+			type: SET_FRONTEND_TOKEN_DEFINITIONS,
+		});
 }
 
 export function useUndoHistory() {

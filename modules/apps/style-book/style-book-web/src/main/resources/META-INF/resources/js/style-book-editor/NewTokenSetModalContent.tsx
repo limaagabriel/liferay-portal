@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import ClayButton from '@clayui/button';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayModal from '@clayui/modal';
 import {FieldBase} from 'frontend-js-components-web';
 import React, {useState} from 'react';
+
+import ModalFormFooter from './ModalFormFooter';
 
 export interface NewFrontendTokenSet {
 	name: string;
@@ -92,26 +93,11 @@ const NewTokenSetModalContent = ({
 				</ClayForm>
 			</ClayModal.Body>
 
-			<ClayModal.Footer
-				last={
-					<ClayButton.Group spaced>
-						<ClayButton
-							displayType="secondary"
-							onClick={closeModal}
-						>
-							{Liferay.Language.get('cancel')}
-						</ClayButton>
-
-						<ClayButton
-							disabled={Boolean(errorMessage)}
-							displayType="primary"
-							form={formId}
-							type="submit"
-						>
-							{Liferay.Language.get('create-token-set')}
-						</ClayButton>
-					</ClayButton.Group>
-				}
+			<ModalFormFooter
+				closeModal={closeModal}
+				disabled={Boolean(errorMessage)}
+				formId={formId}
+				submitLabel={Liferay.Language.get('create-token-set')}
 			/>
 		</>
 	);

@@ -12,6 +12,7 @@ import {FieldBase, openModal} from 'frontend-js-components-web';
 import {fetch, objectToFormData} from 'frontend-js-web';
 import React, {useState} from 'react';
 
+import ModalFormFooter from './ModalFormFooter';
 import NewTokenSetModalContent from './NewTokenSetModalContent';
 
 interface FrontendTokenSetOption {
@@ -49,15 +50,12 @@ const NewTokenModalContent = ({
 	const [errorMessage, setErrorMessage] = useState('');
 	const [label, setLabel] = useState('');
 	const [loading, setLoading] = useState(false);
-	const [provisionalTokenSets, setProvisionalTokenSets] = useState<
-		FrontendTokenSetOption[]
-	>([]);
+	const [tokenSetItems, setTokenSetItems] =
+		useState<FrontendTokenSetOption[]>(tokenSets);
 	const [tokenSetName, setTokenSetName] = useState<React.Key>(
 		tokenSets[0]?.name ?? ''
 	);
 	const [value, setValue] = useState('');
-
-	const tokenSetItems = [...tokenSets, ...provisionalTokenSets];
 
 	const openNewTokenSetModal = () => {
 		openModal({
@@ -69,8 +67,8 @@ const NewTokenModalContent = ({
 					)}
 					namespace={namespace}
 					onSuccess={({name}) => {
-						setProvisionalTokenSets((provisionalTokenSets) => [
-							...provisionalTokenSets,
+						setTokenSetItems((tokenSetItems) => [
+							...tokenSetItems,
 							{label: name, name},
 						]);
 						setTokenSetName(name);
@@ -267,36 +265,12 @@ const NewTokenModalContent = ({
 				</ClayForm>
 			</ClayModal.Body>
 
-			<ClayModal.Footer
-				last={
-					<ClayButton.Group spaced>
-						<ClayButton
-							displayType="secondary"
-							onClick={closeModal}
-						>
-							{Liferay.Language.get('cancel')}
-						</ClayButton>
-
-						<ClayButton
-							aria-busy={loading}
-							disabled={Boolean(errorMessage)}
-							displayType="primary"
-							form={formId}
-							type="submit"
-						>
-							{loading && (
-								<span className="inline-item inline-item-before">
-									<span
-										aria-hidden="true"
-										className="loading-animation"
-									></span>
-								</span>
-							)}
-
-							{Liferay.Language.get('create-token')}
-						</ClayButton>
-					</ClayButton.Group>
-				}
+			<ModalFormFooter
+				closeModal={closeModal}
+				disabled={Boolean(errorMessage)}
+				formId={formId}
+				loading={loading}
+				submitLabel={Liferay.Language.get('create-token')}
 			/>
 		</>
 	);
