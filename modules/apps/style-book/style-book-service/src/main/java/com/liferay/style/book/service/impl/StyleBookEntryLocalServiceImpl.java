@@ -602,7 +602,7 @@ public class StyleBookEntryLocalServiceImpl
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public StyleBookEntry updateStyleBookEntry(
-			long userId, long styleBookEntryId, boolean defaultStylebookEntry,
+			long userId, long styleBookEntryId, boolean defaultStyleBookEntry,
 			String frontendTokensValues, String name, String styleBookEntryKey,
 			long previewFileEntryId, ServiceContext serviceContext)
 		throws PortalException {
@@ -655,7 +655,7 @@ public class StyleBookEntryLocalServiceImpl
 		styleBookEntry.setPreviewFileEntryId(previewFileEntryId);
 		styleBookEntry.setStyleBookEntryKey(styleBookEntryKey);
 
-		if (defaultStylebookEntry) {
+		if (defaultStyleBookEntry) {
 			StyleBookEntry oldDefaultStyleBookEntry =
 				fetchDefaultStyleBookEntry(
 					styleBookEntry.getGroupId(), styleBookEntry.getThemeId());
