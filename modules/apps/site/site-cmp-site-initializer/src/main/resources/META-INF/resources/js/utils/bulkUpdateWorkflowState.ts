@@ -104,6 +104,55 @@ export function getWorkflowKey({
 	return `${workflowDefinitionName}-${workflowDefinitionVersion}`;
 }
 
+/**
+ * Finds the workflow names selected at more than one version. Every
+ * WorkflowGroup covers one name and version pair, so a name appearing in two
+ * groups means two versions of it were selected. The modal labels those groups
+ * with their version and shows the updated workflow alert.
+ *
+ * For example:
+ *
+ * workflowGroups = [
+ *     {workflowDefinitionName: 'Approver', workflowDefinitionVersion: '1'},
+ *     {workflowDefinitionName: 'Approver', workflowDefinitionVersion: '2'},
+ *     {workflowDefinitionName: 'Reviewer', workflowDefinitionVersion: '1'},
+ * ]
+ *
+ * returns
+ *
+ * Set {'Approver'}
+ */
+export function getWorkflowNamesWithMultipleVersions(
+	workflowGroups: WorkflowGroup[]
+) {
+
+	// Count the versions selected for each name. For the example above:
+	// Map {'Approver': 2, 'Reviewer': 1}
+
+	const versionCountByWorkflowName = new Map<string, number>();
+
+	workflowGroups.forEach(({workflowDefinitionName}) => {
+		versionCountByWorkflowName.set(
+			workflowDefinitionName,
+			(versionCountByWorkflowName.get(workflowDefinitionName) ?? 0) + 1
+		);
+	});
+
+	// Keep only the names counted more than once.
+
+	const workflowNames = new Set<string>();
+
+	versionCountByWorkflowName.forEach(
+		(versionCount, workflowDefinitionName) => {
+			if (versionCount > 1) {
+				workflowNames.add(workflowDefinitionName);
+			}
+		}
+	);
+
+	return workflowNames;
+}
+
 export function getWorkflowTaskIds(workflowGroup: WorkflowGroup) {
 	const workflowTaskIds: number[] = [];
 
