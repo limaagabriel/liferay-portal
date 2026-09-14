@@ -16,6 +16,7 @@ import ModalFormFooter from './ModalFormFooter';
 import NewTokenSetModalContent from './NewTokenSetModalContent';
 
 interface FrontendTokenSetOption {
+	description?: string;
 	label: string;
 	name: string;
 }
@@ -66,10 +67,10 @@ const NewTokenModalContent = ({
 						(tokenSetItem) => tokenSetItem.name
 					)}
 					namespace={namespace}
-					onSuccess={({name}) => {
+					onSuccess={({description, label, name}) => {
 						setTokenSetItems((tokenSetItems) => [
 							...tokenSetItems,
-							{label: name, name},
+							{description, label, name},
 						]);
 						setTokenSetName(name);
 					}}
@@ -97,12 +98,18 @@ const NewTokenModalContent = ({
 
 		setLoading(true);
 
+		const selectedTokenSet = tokenSetItems.find(
+			(tokenSetItem) => tokenSetItem.name === tokenSetName
+		);
+
 		const body = Liferay.Util.ns(namespace, {
 			categoryName,
 			description,
 			editorType,
 			label,
 			styleBookEntryId,
+			tokenSetDescription: selectedTokenSet?.description ?? '',
+			tokenSetLabel: selectedTokenSet?.label ?? tokenSetName,
 			tokenSetName,
 			value,
 		});

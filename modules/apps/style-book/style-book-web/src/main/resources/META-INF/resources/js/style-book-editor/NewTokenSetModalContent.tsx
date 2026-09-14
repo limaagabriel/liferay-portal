@@ -11,6 +11,8 @@ import React, {useState} from 'react';
 import ModalFormFooter from './ModalFormFooter';
 
 export interface NewFrontendTokenSet {
+	description: string;
+	label: string;
 	name: string;
 }
 
@@ -27,18 +29,19 @@ const NewTokenSetModalContent = ({
 	namespace,
 	onSuccess,
 }: NewTokenSetModalContentProps) => {
+	const [description, setDescription] = useState('');
 	const [errorMessage, setErrorMessage] = useState('');
-	const [name, setName] = useState('');
+	const [label, setLabel] = useState('');
 
-	const validateName = (name: string) => {
+	const validateLabel = (label: string) => {
 		let errorMessage = '';
 
-		if (!name.trim()) {
+		if (!label.trim()) {
 			errorMessage = Liferay.Language.get('this-field-is-required');
 		}
-		else if (existingTokenSetNames.includes(name)) {
+		else if (existingTokenSetNames.includes(label)) {
 			errorMessage = Liferay.Language.get(
-				'a-token-set-with-that-name-already-exists'
+				'a-token-set-with-that-label-already-exists'
 			);
 		}
 
@@ -50,16 +53,17 @@ const NewTokenSetModalContent = ({
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
-		if (validateName(name)) {
+		if (validateLabel(label)) {
 			return;
 		}
 
-		onSuccess({name});
+		onSuccess({description, label, name: label});
 		closeModal();
 	};
 
+	const descriptionId = `${namespace}newTokenSetDescription`;
 	const formId = `${namespace}newTokenSetForm`;
-	const nameId = `${namespace}newTokenSetName`;
+	const labelId = `${namespace}newTokenSetLabel`;
 
 	return (
 		<>
@@ -72,22 +76,36 @@ const NewTokenSetModalContent = ({
 			<ClayModal.Body>
 				<ClayForm id={formId} onSubmit={handleSubmit}>
 					<FieldBase
-						className="mb-0"
 						errorMessage={errorMessage}
-						id={nameId}
-						label={Liferay.Language.get('name')}
+						id={labelId}
+						label={Liferay.Language.get('label')}
 						required
 					>
 						<ClayInput
-							id={nameId}
+							id={labelId}
 							onChange={(event) => {
-								const name = event.target.value;
+								const label = event.target.value;
 
-								setName(name);
+								setLabel(label);
 
-								validateName(name);
+								validateLabel(label);
 							}}
-							value={name}
+							value={label}
+						/>
+					</FieldBase>
+
+					<FieldBase
+						className="mb-0"
+						id={descriptionId}
+						label={Liferay.Language.get('description')}
+					>
+						<ClayInput
+							component="textarea"
+							id={descriptionId}
+							onChange={(event) =>
+								setDescription(event.target.value)
+							}
+							value={description}
 						/>
 					</FieldBase>
 				</ClayForm>

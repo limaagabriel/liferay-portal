@@ -81,6 +81,8 @@ describe('NewTokenModalContent', () => {
 			editorType: 'Default',
 			label: 'My Token',
 			styleBookEntryId: '1',
+			tokenSetDescription: '',
+			tokenSetLabel: 'Set 1',
 			tokenSetName: 'set1',
 			value: '',
 		});
@@ -146,7 +148,7 @@ describe('NewTokenModalContent', () => {
 
 			const dialog = await openNewTokenSetModal();
 
-			fireEvent.change(within(dialog).getByLabelText(/name/i), {
+			fireEvent.change(within(dialog).getByLabelText(/label/i), {
 				target: {value: 'My Set'},
 			});
 
@@ -169,8 +171,12 @@ describe('NewTokenModalContent', () => {
 
 			const dialog = await openNewTokenSetModal();
 
-			fireEvent.change(within(dialog).getByLabelText(/name/i), {
+			fireEvent.change(within(dialog).getByLabelText(/label/i), {
 				target: {value: 'My Set'},
+			});
+
+			fireEvent.change(within(dialog).getByLabelText(/description/i), {
+				target: {value: 'My Set description'},
 			});
 
 			fireEvent.click(within(dialog).getByText('create-token-set'));
@@ -188,6 +194,8 @@ describe('NewTokenModalContent', () => {
 			const [, {body}] = global.fetch.mock.calls[0];
 
 			expect(Object.fromEntries(body.entries())).toMatchObject({
+				tokenSetDescription: 'My Set description',
+				tokenSetLabel: 'My Set',
 				tokenSetName: 'My Set',
 			});
 		});
@@ -199,7 +207,7 @@ describe('NewTokenModalContent', () => {
 
 			const dialog = await openNewTokenSetModal();
 
-			fireEvent.change(within(dialog).getByLabelText(/name/i), {
+			fireEvent.change(within(dialog).getByLabelText(/label/i), {
 				target: {value: 'My Set'},
 			});
 
@@ -221,16 +229,17 @@ describe('NewTokenModalContent', () => {
 			const [, {body}] = global.fetch.mock.calls[0];
 
 			expect(Object.fromEntries(body.entries())).toMatchObject({
+				tokenSetLabel: 'Set 2',
 				tokenSetName: 'set2',
 			});
 		});
 
-		it('rejects a name that collides with a server-provided set', async () => {
+		it('rejects a label that collides with a server-provided set', async () => {
 			render(<NewTokenModalContent {...NEW_TOKEN_MODAL_PROPS} />);
 
 			const dialog = await openNewTokenSetModal();
 
-			fireEvent.change(within(dialog).getByLabelText(/name/i), {
+			fireEvent.change(within(dialog).getByLabelText(/label/i), {
 				target: {value: 'set1'},
 			});
 
@@ -238,7 +247,7 @@ describe('NewTokenModalContent', () => {
 
 			expect(
 				within(dialog).getByText(
-					'a-token-set-with-that-name-already-exists'
+					'a-token-set-with-that-label-already-exists'
 				)
 			).toBeInTheDocument();
 			expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -250,12 +259,12 @@ describe('NewTokenModalContent', () => {
 			});
 		});
 
-		it('rejects a name that collides with a just-created provisional set', async () => {
+		it('rejects a label that collides with a just-created provisional set', async () => {
 			render(<NewTokenModalContent {...NEW_TOKEN_MODAL_PROPS} />);
 
 			const firstDialog = await openNewTokenSetModal();
 
-			fireEvent.change(within(firstDialog).getByLabelText(/name/i), {
+			fireEvent.change(within(firstDialog).getByLabelText(/label/i), {
 				target: {value: 'My Set'},
 			});
 
@@ -267,7 +276,7 @@ describe('NewTokenModalContent', () => {
 
 			const secondDialog = await openNewTokenSetModal();
 
-			fireEvent.change(within(secondDialog).getByLabelText(/name/i), {
+			fireEvent.change(within(secondDialog).getByLabelText(/label/i), {
 				target: {value: 'My Set'},
 			});
 
@@ -275,7 +284,7 @@ describe('NewTokenModalContent', () => {
 
 			expect(
 				within(secondDialog).getByText(
-					'a-token-set-with-that-name-already-exists'
+					'a-token-set-with-that-label-already-exists'
 				)
 			).toBeInTheDocument();
 
