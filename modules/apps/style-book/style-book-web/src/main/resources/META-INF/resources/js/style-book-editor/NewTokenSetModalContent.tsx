@@ -41,7 +41,7 @@ const NewTokenSetModalContent = ({
 		}
 		else if (existingTokenSetNames.includes(label)) {
 			errorMessage = Liferay.Language.get(
-				'a-token-set-with-that-label-already-exists'
+				'a-token-set-with-that-name-already-exists'
 			);
 		}
 
@@ -78,7 +78,7 @@ const NewTokenSetModalContent = ({
 					<FieldBase
 						errorMessage={errorMessage}
 						id={labelId}
-						label={Liferay.Language.get('label')}
+						label={Liferay.Language.get('name')}
 						required
 					>
 						<ClayInput
