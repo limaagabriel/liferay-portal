@@ -7,17 +7,26 @@ import '../../css/Panels.scss';
 
 import React from 'react';
 
+import {LoadedImage} from '../imaging/loadImage';
 import {AdjustPanel} from '../panels/AdjustPanel';
 import {CropPanel} from '../panels/CropPanel';
+import {FilterGallery} from '../panels/FilterGallery';
 import {EditorAction} from '../state/editorReducer';
-import {AdjustmentKey, EditState, rotatedSize} from '../state/types';
+import {
+	AdjustmentKey,
+	EditState,
+	FilterPreset,
+	rotatedSize,
+} from '../state/types';
 
 interface Props {
 	aspectLocked: boolean;
 
 	dispatch: (action: EditorAction) => void;
+	image: LoadedImage;
 	onAnnounce: (message: string) => void;
 	onAspectLockedChange: (locked: boolean) => void;
+	presets: FilterPreset[];
 	showCrop: boolean;
 	showStraighten: boolean;
 	sliders: AdjustmentKey[];
@@ -27,8 +36,10 @@ interface Props {
 export function EditorSidebar({
 	aspectLocked,
 	dispatch,
+	image,
 	onAnnounce,
 	onAspectLockedChange,
+	presets,
 	showCrop,
 	showStraighten,
 	sliders,
@@ -58,6 +69,16 @@ export function EditorSidebar({
 					dispatch={dispatch}
 					onAnnounce={onAnnounce}
 					sliders={sliders}
+				/>
+			)}
+
+			{!!presets.length && (
+				<FilterGallery
+					dispatch={dispatch}
+					filter={state.filter}
+					image={image}
+					onAnnounce={onAnnounce}
+					presets={presets}
 				/>
 			)}
 		</aside>

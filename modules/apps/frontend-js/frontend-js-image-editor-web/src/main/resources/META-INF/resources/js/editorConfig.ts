@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {AdjustmentKey, RatioPreset} from './state/types';
+import {AdjustmentKey, FilterPreset, RatioPreset} from './state/types';
 
 export const ADJUSTMENT_KEYS: AdjustmentKey[] = [
 	'brightness',
@@ -11,6 +11,29 @@ export const ADJUSTMENT_KEYS: AdjustmentKey[] = [
 	'saturation',
 	'shadows',
 	'highlights',
+];
+
+export const FILTER_PRESETS: FilterPreset[] = [
+	'none',
+	'grayscale',
+	'noir',
+	'sepia',
+	'cyanotype',
+	'vintage',
+	'fade',
+	'matte',
+	'warm',
+	'cool',
+	'splittone',
+	'crossprocess',
+	'tealorange',
+	'vivid',
+	'technicolor',
+	'polaroid',
+	'bleach',
+	'posterize',
+	'solarize',
+	'invert',
 ];
 
 export const RATIO_PRESETS: RatioPreset[] = [
@@ -33,6 +56,8 @@ export interface EditorConfig {
 				rotate?: boolean;
 				straighten?: boolean;
 		  };
+
+	filters?: false | {presets?: FilterPreset[]};
 }
 
 interface ResolvedEditorConfig {
@@ -43,6 +68,7 @@ interface ResolvedEditorConfig {
 		rotate: boolean;
 		straighten: boolean;
 	};
+	filters: FilterPreset[];
 }
 
 export function resolveConfig(config: EditorConfig = {}): ResolvedEditorConfig {
@@ -62,6 +88,10 @@ export function resolveConfig(config: EditorConfig = {}): ResolvedEditorConfig {
 						rotate: crop?.rotate ?? true,
 						straighten: crop?.straighten ?? true,
 					},
+		filters:
+			config.filters === false
+				? []
+				: pick(FILTER_PRESETS, config.filters?.presets),
 	};
 }
 

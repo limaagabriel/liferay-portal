@@ -83,6 +83,11 @@ function Editor({
 
 	const enabled = useMemo(() => resolveConfig(config), [config]);
 
+	const hasSidebar =
+		enabled.crop.enabled ||
+		!!enabled.adjustments.length ||
+		!!enabled.filters.length;
+
 	const announce = useAnnouncer();
 
 	const savingRef = useRef(false);
@@ -407,12 +412,14 @@ function Editor({
 						zoom={zoom}
 					/>
 
-					{(enabled.crop.enabled || !!enabled.adjustments.length) && (
+					{hasSidebar && (
 						<EditorSidebar
 							aspectLocked={aspectLocked}
 							dispatch={dispatch}
+							image={image}
 							onAnnounce={announce}
 							onAspectLockedChange={setAspectLocked}
+							presets={enabled.filters}
 							showCrop={enabled.crop.enabled}
 							showStraighten={enabled.crop.straighten}
 							sliders={enabled.adjustments}
