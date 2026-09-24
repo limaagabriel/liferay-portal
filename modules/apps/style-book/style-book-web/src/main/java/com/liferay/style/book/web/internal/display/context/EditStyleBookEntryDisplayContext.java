@@ -150,8 +150,7 @@ public class EditStyleBookEntryDisplayContext {
 						continue;
 					}
 
-					String namespacedKey = StringBundler.concat(
-						themeId, StringPool.COLON, key);
+					String namespacedKey = themeId + StringPool.COLON + key;
 
 					if (!frontendTokensValuesJSONObject.has(namespacedKey)) {
 						frontendTokensValuesJSONObject.put(

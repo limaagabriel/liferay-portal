@@ -48,6 +48,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+
 import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
@@ -68,13 +71,14 @@ public class EditStyleBookEntryDisplayContextTest {
 	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
-		_layout = LayoutTestUtil.addTypePortletLayout(_group.getGroupId());
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
+			_group.getGroupId());
 
 		_themeDisplay = new ThemeDisplay();
 
 		_themeDisplay.setCompany(
 			_companyLocalService.getCompany(TestPropsValues.getCompanyId()));
-		_themeDisplay.setLayout(_layout);
+		_themeDisplay.setLayout(layout);
 		_themeDisplay.setLocale(LocaleUtil.getDefault());
 		_themeDisplay.setPermissionChecker(
 			PermissionThreadLocal.getPermissionChecker());
@@ -179,10 +183,10 @@ public class EditStyleBookEntryDisplayContextTest {
 		MockLiferayPortletRenderRequest mockLiferayPortletRenderRequest =
 			new MockLiferayPortletRenderRequest();
 
+		mockLiferayPortletRenderRequest.addParameter("redirect", "/");
 		mockLiferayPortletRenderRequest.addParameter(
 			"styleBookEntryId",
 			String.valueOf(styleBookEntry.getStyleBookEntryId()));
-		mockLiferayPortletRenderRequest.addParameter("redirect", "/");
 		mockLiferayPortletRenderRequest.setAttribute(
 			WebKeys.THEME_DISPLAY, _themeDisplay);
 
@@ -212,32 +216,25 @@ public class EditStyleBookEntryDisplayContextTest {
 			).toString(),
 			themeId);
 
-		JSONObject frontendTokensValuesJSONObject =
-			_getFrontendTokensValuesJSONObject(styleBookEntry);
-
-		Assert.assertFalse(frontendTokensValuesJSONObject.has(tokenName));
-		Assert.assertTrue(
-			frontendTokensValuesJSONObject.has(
-				themeId + StringPool.COLON + tokenName));
-		Assert.assertEquals(
-			tokenValue,
-			frontendTokensValuesJSONObject.getJSONObject(
-				themeId + StringPool.COLON + tokenName
-			).getString(
-				"value"
-			));
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				themeId + StringPool.COLON + tokenName,
+				JSONUtil.put("value", tokenValue)
+			).toString(),
+			String.valueOf(_getFrontendTokensValuesJSONObject(styleBookEntry)),
+			JSONCompareMode.STRICT);
 	}
 
 	private void _testGetStyleBookEditorDataWithBothBareAndNamespacedTokenKeys()
 		throws Exception {
 
+		String bareValue = RandomTestUtil.randomString();
+		String namespacedValue = RandomTestUtil.randomString();
+
 		String themeId = RandomTestUtil.randomString();
 		String tokenName = RandomTestUtil.randomString();
 
 		String namespacedKey = themeId + StringPool.COLON + tokenName;
-
-		String bareValue = RandomTestUtil.randomString();
-		String namespacedValue = RandomTestUtil.randomString();
 
 		StyleBookEntry styleBookEntry = _addStyleBookEntry(
 			JSONUtil.put(
@@ -247,18 +244,12 @@ public class EditStyleBookEntryDisplayContextTest {
 			).toString(),
 			themeId);
 
-		JSONObject frontendTokensValuesJSONObject =
-			_getFrontendTokensValuesJSONObject(styleBookEntry);
-
-		Assert.assertFalse(frontendTokensValuesJSONObject.has(tokenName));
-		Assert.assertTrue(frontendTokensValuesJSONObject.has(namespacedKey));
-		Assert.assertEquals(
-			namespacedValue,
-			frontendTokensValuesJSONObject.getJSONObject(
-				namespacedKey
-			).getString(
-				"value"
-			));
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				namespacedKey, JSONUtil.put("value", namespacedValue)
+			).toString(),
+			String.valueOf(_getFrontendTokensValuesJSONObject(styleBookEntry)),
+			JSONCompareMode.STRICT);
 	}
 
 	private void _testGetStyleBookEditorDataWithNamespacedTokenKey()
@@ -266,10 +257,9 @@ public class EditStyleBookEntryDisplayContextTest {
 
 		String themeId = RandomTestUtil.randomString();
 		String tokenName = RandomTestUtil.randomString();
+		String tokenValue = RandomTestUtil.randomString();
 
 		String namespacedKey = themeId + StringPool.COLON + tokenName;
-
-		String tokenValue = RandomTestUtil.randomString();
 
 		StyleBookEntry styleBookEntry = _addStyleBookEntry(
 			JSONUtil.put(
@@ -277,18 +267,12 @@ public class EditStyleBookEntryDisplayContextTest {
 			).toString(),
 			themeId);
 
-		JSONObject frontendTokensValuesJSONObject =
-			_getFrontendTokensValuesJSONObject(styleBookEntry);
-
-		Assert.assertFalse(frontendTokensValuesJSONObject.has(tokenName));
-		Assert.assertTrue(frontendTokensValuesJSONObject.has(namespacedKey));
-		Assert.assertEquals(
-			tokenValue,
-			frontendTokensValuesJSONObject.getJSONObject(
-				namespacedKey
-			).getString(
-				"value"
-			));
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				namespacedKey, JSONUtil.put("value", tokenValue)
+			).toString(),
+			String.valueOf(_getFrontendTokensValuesJSONObject(styleBookEntry)),
+			JSONCompareMode.STRICT);
 	}
 
 	private static final String _THEME_ID_CLASSIC = "classic_WAR_classictheme";
@@ -298,8 +282,6 @@ public class EditStyleBookEntryDisplayContextTest {
 
 	@DeleteAfterTestRun
 	private Group _group;
-
-	private Layout _layout;
 
 	@Inject(
 		filter = "component.name=com.liferay.style.book.web.internal.portlet.action.EditStyleBookEntryMVCRenderCommand"
