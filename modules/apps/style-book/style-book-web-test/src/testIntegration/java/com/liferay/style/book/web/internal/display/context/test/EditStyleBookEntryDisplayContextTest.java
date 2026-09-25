@@ -161,8 +161,10 @@ public class EditStyleBookEntryDisplayContextTest {
 	@Test
 	public void testGetStyleBookEditorData() throws Exception {
 		_testGetStyleBookEditorDataWithBareNameTokenKey();
+		_testGetStyleBookEditorDataWithBareNameTokenLink();
 		_testGetStyleBookEditorDataWithBothBareAndNamespacedTokenKeys();
 		_testGetStyleBookEditorDataWithNamespacedTokenKey();
+		_testGetStyleBookEditorDataWithNamespacedTokenKeyAndBareNameTokenLink();
 	}
 
 	private StyleBookEntry _addStyleBookEntry(
@@ -194,13 +196,15 @@ public class EditStyleBookEntryDisplayContextTest {
 			mockLiferayPortletRenderRequest,
 			new MockLiferayPortletRenderResponse());
 
-		Map<String, Object> editorData = ReflectionTestUtil.invoke(
+		Object editStyleBookEntryDisplayContext =
 			mockLiferayPortletRenderRequest.getAttribute(
 				"com.liferay.style.book.web.internal.display.context." +
-					"EditStyleBookEntryDisplayContext"),
-			"getStyleBookEditorData", new Class<?>[0]);
+					"EditStyleBookEntryDisplayContext");
 
-		return (JSONObject)editorData.get("frontendTokensValues");
+		return ReflectionTestUtil.invoke(
+			editStyleBookEntryDisplayContext,
+			"_getFrontendTokensValuesJSONObject",
+			new Class<?>[] {StyleBookEntry.class}, styleBookEntry);
 	}
 
 	private void _testGetStyleBookEditorDataWithBareNameTokenKey()
@@ -220,6 +224,38 @@ public class EditStyleBookEntryDisplayContextTest {
 			JSONUtil.put(
 				themeId + StringPool.COLON + tokenName,
 				JSONUtil.put("value", tokenValue)
+			).toString(),
+			String.valueOf(_getFrontendTokensValuesJSONObject(styleBookEntry)),
+			JSONCompareMode.STRICT);
+	}
+
+	private void _testGetStyleBookEditorDataWithBareNameTokenLink()
+		throws Exception {
+
+		String linkedTokenName = RandomTestUtil.randomString();
+		String themeId = RandomTestUtil.randomString();
+		String tokenName = RandomTestUtil.randomString();
+		String tokenValue = RandomTestUtil.randomString();
+
+		StyleBookEntry styleBookEntry = _addStyleBookEntry(
+			JSONUtil.put(
+				tokenName,
+				JSONUtil.put(
+					"name", linkedTokenName
+				).put(
+					"value", tokenValue
+				)
+			).toString(),
+			themeId);
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				themeId + StringPool.COLON + tokenName,
+				JSONUtil.put(
+					"name", themeId + StringPool.COLON + linkedTokenName
+				).put(
+					"value", tokenValue
+				)
 			).toString(),
 			String.valueOf(_getFrontendTokensValuesJSONObject(styleBookEntry)),
 			JSONCompareMode.STRICT);
@@ -270,6 +306,40 @@ public class EditStyleBookEntryDisplayContextTest {
 		JSONAssert.assertEquals(
 			JSONUtil.put(
 				namespacedKey, JSONUtil.put("value", tokenValue)
+			).toString(),
+			String.valueOf(_getFrontendTokensValuesJSONObject(styleBookEntry)),
+			JSONCompareMode.STRICT);
+	}
+
+	private void _testGetStyleBookEditorDataWithNamespacedTokenKeyAndBareNameTokenLink()
+		throws Exception {
+
+		String linkedTokenName = RandomTestUtil.randomString();
+		String themeId = RandomTestUtil.randomString();
+		String tokenName = RandomTestUtil.randomString();
+		String tokenValue = RandomTestUtil.randomString();
+
+		String namespacedKey = themeId + StringPool.COLON + tokenName;
+
+		StyleBookEntry styleBookEntry = _addStyleBookEntry(
+			JSONUtil.put(
+				namespacedKey,
+				JSONUtil.put(
+					"name", linkedTokenName
+				).put(
+					"value", tokenValue
+				)
+			).toString(),
+			themeId);
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				namespacedKey,
+				JSONUtil.put(
+					"name", themeId + StringPool.COLON + linkedTokenName
+				).put(
+					"value", tokenValue
+				)
 			).toString(),
 			String.valueOf(_getFrontendTokensValuesJSONObject(styleBookEntry)),
 			JSONCompareMode.STRICT);

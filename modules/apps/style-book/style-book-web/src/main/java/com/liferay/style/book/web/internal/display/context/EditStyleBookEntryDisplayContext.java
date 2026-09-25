@@ -133,36 +133,7 @@ public class EditStyleBookEntryDisplayContext {
 			"frontendTokenDefinitions", _getFrontendTokenDefinitionsJSONArray()
 		).put(
 			"frontendTokensValues",
-			() -> {
-				StyleBookEntry styleBookEntry = _getStyleBookEntry();
-
-				JSONObject frontendTokensValuesJSONObject =
-					JSONFactoryUtil.createJSONObject(
-						styleBookEntry.getFrontendTokensValues());
-
-				String themeId = styleBookEntry.getThemeId();
-
-				for (String key :
-						new ArrayList<>(
-							frontendTokensValuesJSONObject.keySet())) {
-
-					if (key.contains(StringPool.COLON)) {
-						continue;
-					}
-
-					String namespacedKey = themeId + StringPool.COLON + key;
-
-					if (!frontendTokensValuesJSONObject.has(namespacedKey)) {
-						frontendTokensValuesJSONObject.put(
-							namespacedKey,
-							frontendTokensValuesJSONObject.get(key));
-					}
-
-					frontendTokensValuesJSONObject.remove(key);
-				}
-
-				return frontendTokensValuesJSONObject;
-			}
+			() -> _getFrontendTokensValuesJSONObject(_getStyleBookEntry())
 		).put(
 			"isPrivateLayoutsEnabled",
 			() -> {
@@ -415,6 +386,50 @@ public class EditStyleBookEntryDisplayContext {
 			).put(
 				"priority", globalFrontendTokenDefinition.getPriority()
 			));
+	}
+
+	private JSONObject _getFrontendTokensValuesJSONObject(
+			StyleBookEntry styleBookEntry)
+		throws Exception {
+
+		JSONObject frontendTokensValuesJSONObject =
+			JSONFactoryUtil.createJSONObject(
+				styleBookEntry.getFrontendTokensValues());
+
+		String themeId = styleBookEntry.getThemeId();
+
+		for (String key :
+				new ArrayList<>(frontendTokensValuesJSONObject.keySet())) {
+
+			JSONObject valueJSONObject =
+				frontendTokensValuesJSONObject.getJSONObject(key);
+
+			if (valueJSONObject != null) {
+				String name = valueJSONObject.getString("name");
+
+				if (Validator.isNotNull(name) &&
+					!name.contains(StringPool.COLON)) {
+
+					valueJSONObject.put(
+						"name", themeId + StringPool.COLON + name);
+				}
+			}
+
+			if (key.contains(StringPool.COLON)) {
+				continue;
+			}
+
+			String namespacedKey = themeId + StringPool.COLON + key;
+
+			if (!frontendTokensValuesJSONObject.has(namespacedKey)) {
+				frontendTokensValuesJSONObject.put(
+					namespacedKey, frontendTokensValuesJSONObject.get(key));
+			}
+
+			frontendTokensValuesJSONObject.remove(key);
+		}
+
+		return frontendTokensValuesJSONObject;
 	}
 
 	private String _getName(Group entryGroup, Layout layout) {
