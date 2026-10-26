@@ -3,13 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import ClayAlert from '@clayui/alert';
 import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import {ClayInput} from '@clayui/form';
 import ClayLayout from '@clayui/layout';
 import ClayToolbar from '@clayui/toolbar';
-import {TranslationAdminSelector} from 'frontend-js-components-web';
-import {localStorage} from 'frontend-js-web';
+import {TranslationAdminSelector, openToast} from 'frontend-js-components-web';
+import {escapeHTML, localStorage} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {isEdge, isNode} from 'react-flow-renderer';
@@ -456,15 +455,28 @@ export default function UpperToolbar({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [blockingError]);
 
-	const resetAlert = () => {
-		setShowAlert(false);
-		if (
-			blockingError.errorType === 'assignment' ||
-			blockingError.errorType === 'invalidXML'
-		) {
-			setBlockingError({errorType: ''});
+	useEffect(() => {
+		if (!showAlert) {
+			return;
 		}
-	};
+
+		setShowAlert(false);
+
+		openToast({
+			message: escapeHTML(alertMessage),
+			onClose: () =>
+				setBlockingError((previousBlockingError) =>
+					previousBlockingError.errorType === 'assignment' ||
+					previousBlockingError.errorType === 'invalidXML'
+						? {errorType: ''}
+						: previousBlockingError
+				),
+			title: alertType === 'success' ? undefined : errorTitle(),
+			type: alertType,
+		});
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [showAlert]);
 
 	return (
 		<>
@@ -609,24 +621,6 @@ export default function UpperToolbar({
 					</ClayToolbar.Nav>
 				</ClayLayout.ContainerFluid>
 			</ClayToolbar>
-
-			{showAlert && (
-				<ClayAlert.ToastContainer>
-					<ClayAlert
-						autoClose={5000}
-						closeButtonAriaLabel={Liferay.Language.get('close')}
-						displayType={alertType}
-						onClose={() => resetAlert()}
-						title={
-							alertType === 'success'
-								? `${Liferay.Language.get('success')}:`
-								: `${errorTitle()}:`
-						}
-					>
-						{alertMessage}
-					</ClayAlert>
-				</ClayAlert.ToastContainer>
-			)}
 
 			{showGroovyScriptWarningModal && (
 				<GroovyScriptWarningModal
