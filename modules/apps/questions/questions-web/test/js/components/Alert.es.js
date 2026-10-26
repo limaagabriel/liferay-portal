@@ -4,12 +4,17 @@
  */
 
 import {cleanup} from '@testing-library/react';
+import {openToast} from 'frontend-js-components-web';
 import React from 'react';
 
 import Alert from '../../../src/main/resources/META-INF/resources/js/components/Alert.es';
 import {renderComponent} from '../../helpers.es';
 
 import '@testing-library/jest-dom';
+
+jest.mock('frontend-js-components-web', () => ({
+	openToast: jest.fn(),
+}));
 
 describe('Alert', () => {
 	afterEach(cleanup);
@@ -19,12 +24,15 @@ describe('Alert', () => {
 			message: 'Info message',
 			title: 'Info title',
 		};
-		const {getByText} = renderComponent({
+
+		renderComponent({
 			ui: <Alert info={info} />,
 		});
 
-		expect(getByText(info.title)).toBeInTheDocument();
-
-		expect(getByText(info.message)).toBeInTheDocument();
+		expect(openToast).toHaveBeenCalledWith({
+			message: info.message,
+			title: info.title,
+			type: 'danger',
+		});
 	});
 });
