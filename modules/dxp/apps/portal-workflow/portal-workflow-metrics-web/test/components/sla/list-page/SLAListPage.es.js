@@ -4,15 +4,20 @@
  */
 
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
+import {openToast} from 'frontend-js-components-web';
 import React from 'react';
 
 import '@testing-library/jest-dom';
 
 import {SLAContext} from '../../../../src/main/resources/META-INF/resources/js/components/sla/SLAContainer.es';
 import SLAListPage from '../../../../src/main/resources/META-INF/resources/js/components/sla/list-page/SLAListPage.es';
-import ToasterProvider from '../../../../src/main/resources/META-INF/resources/js/shared/components/toaster/ToasterProvider.es';
 import {MockRouter} from '../../../mock/MockRouter.es';
 import FetchMock, {fetchMockResponse} from '../../../mock/fetch.es';
+
+jest.mock('frontend-js-components-web', () => ({
+	...jest.requireActual('frontend-js-components-web'),
+	openToast: jest.fn(),
+}));
 
 const mockProps = {
 	initialPath: '/sla/36001/list/20/1',
@@ -32,11 +37,9 @@ describe('The SLAListPage component should', () => {
 
 			const renderResult = render(
 				<MockRouter {...mockProps}>
-					<ToasterProvider>
-						<SLAContext.Provider value={{}}>
-							<SLAListPage />
-						</SLAContext.Provider>
-					</ToasterProvider>
+					<SLAContext.Provider value={{}}>
+						<SLAListPage />
+					</SLAContext.Provider>
 				</MockRouter>
 			);
 
@@ -104,11 +107,9 @@ describe('The SLAListPage component should', () => {
 
 			const renderResult = render(
 				<MockRouter {...mockProps}>
-					<ToasterProvider>
-						<SLAContext.Provider value={contextMock}>
-							<SLAListPage />
-						</SLAContext.Provider>
-					</ToasterProvider>
+					<SLAContext.Provider value={contextMock}>
+						<SLAListPage />
+					</SLAContext.Provider>
 				</MockRouter>
 			);
 
@@ -189,19 +190,14 @@ describe('The SLAListPage component should', () => {
 		});
 
 		it('Display toast when failure occur while trying to confirm item delete', async () => {
-			const alertToast = document.querySelector('.alert-dismissible');
-
-			const alertClose = alertToast.children[1];
-
 			const deleteButton = getByText('ok');
 
-			expect(alertToast).toHaveTextContent('your-request-has-failed');
-
-			fireEvent.click(alertClose);
-
-			const alertContainer = document.querySelector('.alert-container');
-
-			expect(alertContainer.children[0].children.length).toBe(0);
+			expect(openToast).toHaveBeenCalledWith(
+				expect.objectContaining({
+					message: 'your-request-has-failed',
+					type: 'danger',
+				})
+			);
 
 			fireEvent.click(deleteButton);
 
@@ -310,11 +306,9 @@ describe('The SLAListPage component should', () => {
 
 			const renderResult = render(
 				<MockRouter {...mockProps}>
-					<ToasterProvider>
-						<SLAContext.Provider value={{}}>
-							<SLAListPage />
-						</SLAContext.Provider>
-					</ToasterProvider>
+					<SLAContext.Provider value={{}}>
+						<SLAListPage />
+					</SLAContext.Provider>
 				</MockRouter>
 			);
 
