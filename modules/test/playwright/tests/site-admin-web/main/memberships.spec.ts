@@ -461,6 +461,11 @@ test(
 
 		await page.waitForTimeout(300);
 
+		// Start from the product menu toggle, as where the focus is after
+		// closing the menu varies
+
+		await page.getByTestId('productMenu').focus();
+
 		await page.keyboard.press('Tab');
 
 		await expect(
@@ -491,9 +496,7 @@ test(
 
 		await page.waitForTimeout(300);
 
-		await page.keyboard.press('Tab');
-
-		await page.keyboard.press('Tab');
+		await page.getByTestId('productMenu').focus();
 
 		await page.keyboard.press('Tab');
 
@@ -523,9 +526,7 @@ test(
 
 		await page.waitForTimeout(300);
 
-		await page.keyboard.press('Tab');
-
-		await page.keyboard.press('Tab');
+		await page.getByTestId('productMenu').focus();
 
 		await page.keyboard.press('Tab');
 

@@ -13,6 +13,8 @@ import {closeProductMenu, openProductMenu} from '../../../utils/productMenu';
 import {waitForPageToBeLoaded} from '../../../utils/waitForPageToBeLoaded';
 import {contentDashboardPagesTest} from '../../content-dashboard-web/main/fixtures/contentDashboardPagesTest';
 
+type Box = {x: number; y: number};
+
 const test = mergeTests(
 	contentDashboardPagesTest,
 	globalMenuPagesTest,
@@ -111,7 +113,6 @@ test(
 		});
 
 		const menu = page.getByLabel('Applications Menu', {exact: true});
-		const toggler = page.getByTestId('sideNavigationToggler');
 
 		const testCases = [
 			{expectedState: false, initialState: true},
@@ -124,7 +125,15 @@ test(
 					visible: initialState,
 				});
 
-				await toggler.click();
+				// Hovering the toggle of a hidden menu reveals the menu over
+				// it, so the pin button in the header opens it instead
+
+				if (expectedState) {
+					await openProductMenu(page);
+				}
+				else {
+					await closeProductMenu(page);
+				}
 
 				await expect(menu).toBeVisible({
 					visible: expectedState,
@@ -251,21 +260,30 @@ test(
 	{tag: '@LPD-86410'},
 	async ({contentDashboardPage, page, site}) => {
 		async function expectSideNavigationToBeRendered() {
+			const headerToggler = page.getByTestId(
+				'unifiedSidebarHeaderToggler'
+			);
 			const sideNavigation = page.getByLabel('Applications Menu', {
 				exact: true,
 			});
 			const toggler = page.getByTestId('sideNavigationToggler');
 
-			await expect(sideNavigation).toBeVisible();
-			await expect(toggler).toBeVisible();
+			// While the menu is pinned, its header holds the toggle
 
-			await toggler.click();
+			await expect(sideNavigation).toBeVisible();
+			await expect(headerToggler).toBeVisible();
+			await expect(toggler).toBeHidden();
+
+			await closeProductMenu(page);
 
 			await expect(sideNavigation).toBeHidden();
+			await expect(toggler).toBeVisible();
 
-			await toggler.click();
+			await openProductMenu(page);
 
 			await expect(sideNavigation).toBeVisible();
+			await expect(headerToggler).toBeVisible();
+			await expect(toggler).toBeHidden();
 		}
 
 		await test.step('Go to Applications > Content Dashboard', async () => {
@@ -426,5 +444,386 @@ test(
 				})
 			).toHaveAttribute('aria-expanded');
 		});
+	}
+);
+
+test(
+	'Hovering the toggle reveals the hidden side navigation without pinning it',
+	{tag: '@LPD-110660'},
+	async ({globalMenuPage, page}) => {
+		const controlMenu = page.locator('nav.control-menu-container');
+		const menu = page.getByLabel('Control Panel Menu', {exact: true});
+		const pageBody = page.locator('.portlet-boundary').first();
+		const headerToggler = page.getByTestId('unifiedSidebarHeaderToggler');
+		const toggler = page.getByTestId('sideNavigationToggler');
+
+		let reference: Box;
+
+		// The visible toggles are the ones rendered and not covered by
+		// another element, as a revealed menu covers the Control Menu toggle
+
+		async function expectOneToggle(testId: string) {
+			await expect(async () => {
+				const toggles = await page.evaluate(() =>
+					Array.from(
+						document.querySelectorAll<HTMLElement>(
+							'[data-qa-id="sideNavigationToggler"], [data-qa-id="unifiedSidebarHeaderToggler"]'
+						)
+					)
+						.map((element) => {
+							const {height, width, x, y} =
+								element.getBoundingClientRect();
+
+							const topElement = document.elementFromPoint(
+								x + width / 2,
+								y + height / 2
+							);
+
+							return {
+								covered: !topElement?.closest(
+									`[data-qa-id="${element.dataset.qaId}"]`
+								),
+								height,
+								testId: element.dataset.qaId,
+								width,
+								x,
+								y,
+							};
+						})
+						.filter(
+							({covered, height, width}) =>
+								!covered && width > 0 && height > 0
+						)
+				);
+
+				expect(toggles.map(({testId}) => testId)).toEqual([testId]);
+
+				const [{height, width, x, y}] = toggles;
+
+				expect({height, width}).toEqual({height: 32, width: 32});
+				expect(x).toBeCloseTo(reference.x, 0);
+				expect(Math.abs(y - reference.y)).toBeLessThanOrEqual(4);
+			}).toPass({timeout: 5000});
+		}
+
+		async function getHeaderTogglerStyle() {
+			return headerToggler.evaluate((element) => {
+				const {backgroundColor, borderRadius, color, height, width} =
+					getComputedStyle(element);
+
+				return {
+					backgroundColor,
+					borderRadius,
+					color,
+					height,
+					iconColor: getComputedStyle(element.querySelector('svg')!)
+						.color,
+					width,
+				};
+			});
+		}
+
+		async function hoverToggler() {
+			await moveAwayFromMenu();
+
+			await toggler.hover();
+		}
+
+		async function moveAwayFromMenu() {
+			await page.mouse.move(900, 500);
+		}
+
+		try {
+			await test.step('Go to the Control Panel and hide the menu', async () => {
+				await globalMenuPage.goToControlPanel();
+
+				await closeProductMenu(page);
+
+				await moveAwayFromMenu();
+
+				await expect(menu).toBeHidden();
+				await expect(toggler).toHaveAttribute('aria-expanded', 'false');
+			});
+
+			await test.step('Only the Control Menu toggle shows while the menu is hidden', async () => {
+				reference = (await toggler.boundingBox())!;
+
+				await expectOneToggle('sideNavigationToggler');
+
+				const html = await (await page.request.get(page.url())).text();
+
+				expect(html).toContain('product-menu-toast-toggle');
+			});
+
+			await test.step('Hovering the toggle reveals the menu without moving the layout', async () => {
+				const controlMenuBox = await controlMenu.boundingBox();
+				const pageBodyBox = await pageBody.boundingBox();
+
+				expect(controlMenuBox).not.toBeNull();
+				expect(pageBodyBox).not.toBeNull();
+
+				await toggler.hover();
+
+				await expect(menu).toBeVisible();
+				await expect(menu).toHaveClass(/c-slideout-peek/);
+
+				expect(await controlMenu.boundingBox()).toEqual(controlMenuBox);
+				expect(await pageBody.boundingBox()).toEqual(pageBodyBox);
+
+				await expect(toggler).toHaveAttribute('aria-expanded', 'false');
+			});
+
+			await test.step('Moving from the toggle into the menu keeps it revealed', async () => {
+				const menuBox = await menu.boundingBox();
+
+				await page.mouse.move(
+					menuBox!.x + menuBox!.width / 2,
+					menuBox!.y + menuBox!.height / 2,
+					{steps: 10}
+				);
+
+				await expect(menu).toBeVisible();
+				await expect(menu).toHaveClass(/c-slideout-peek/);
+			});
+
+			await test.step('Moving away hides the menu', async () => {
+				await moveAwayFromMenu();
+
+				await expect(menu).toBeHidden();
+				await expect(toggler).toHaveAttribute('aria-expanded', 'false');
+			});
+
+			await test.step('Escape hides the revealed menu', async () => {
+				await hoverToggler();
+
+				await expect(menu).toBeVisible();
+
+				await page.keyboard.press('Escape');
+
+				await expect(menu).toBeHidden();
+				await expect(toggler).toHaveAttribute('aria-expanded', 'false');
+			});
+
+			await test.step('Following a navigation item keeps the menu unpinned', async () => {
+				await hoverToggler();
+
+				await expect(menu).toBeVisible();
+
+				await menu.getByRole('menuitem', {name: 'User Groups'}).click();
+
+				await waitForPageToBeLoaded(page);
+
+				await expect(
+					page.getByRole('heading', {name: 'User Groups'})
+				).toBeAttached();
+				await expect(toggler).toHaveAttribute('aria-expanded', 'false');
+			});
+
+			await test.step('The menu stays unpinned after a reload', async () => {
+				await moveAwayFromMenu();
+
+				await page.reload();
+
+				await waitForPageToBeLoaded(page);
+
+				await expect(toggler).toHaveAttribute('aria-expanded', 'false');
+				await expect(menu).toBeHidden();
+			});
+
+			await test.step('The revealed header toggle shows the logo until it is hovered', async () => {
+				const icon = headerToggler.locator('svg');
+				const logo = headerToggler.locator('img');
+
+				await hoverToggler();
+
+				await expect(menu).toBeVisible();
+
+				const menuBox = await menu.boundingBox();
+
+				await page.mouse.move(
+					menuBox!.x + menuBox!.width / 2,
+					menuBox!.y + menuBox!.height / 2,
+					{steps: 10}
+				);
+
+				await expect(menu).toHaveClass(/c-slideout-peek/);
+				await expect(headerToggler).toHaveAttribute(
+					'aria-label',
+					'Pin Product Menu'
+				);
+				await expect(logo).toBeVisible();
+				await expect(icon).toBeHidden();
+
+				await expectOneToggle('unifiedSidebarHeaderToggler');
+
+				await headerToggler.hover();
+
+				await expect(icon).toBeVisible();
+				await expect(logo).toBeHidden();
+			});
+
+			await test.step('The revealed header toggle is light on hover and has no active background', async () => {
+				const style = {
+					borderRadius: '8px',
+					color: 'rgb(107, 108, 126)',
+					height: '32px',
+					iconColor: 'rgb(107, 108, 126)',
+					width: '32px',
+				};
+
+				const menuBox = await menu.boundingBox();
+
+				await page.mouse.move(
+					menuBox!.x + menuBox!.width / 2,
+					menuBox!.y + menuBox!.height / 2,
+					{steps: 10}
+				);
+
+				await expect(headerToggler).toHaveAttribute(
+					'aria-expanded',
+					'false'
+				);
+
+				await expect(async () => {
+					expect(await getHeaderTogglerStyle()).toEqual({
+						...style,
+						backgroundColor: 'rgba(0, 0, 0, 0)',
+					});
+				}).toPass({timeout: 5000});
+
+				await headerToggler.hover();
+
+				await expect(async () => {
+					expect(await getHeaderTogglerStyle()).toEqual({
+						...style,
+						backgroundColor: 'rgb(241, 242, 245)',
+					});
+				}).toPass({timeout: 5000});
+			});
+
+			await test.step('The header toggle of the revealed menu pins it', async () => {
+				const pageBodyBox = await pageBody.boundingBox();
+
+				await hoverToggler();
+
+				await expect(menu).toBeVisible();
+
+				await headerToggler.click();
+
+				await expect(toggler).toHaveAttribute('aria-expanded', 'true');
+				await expect(menu).not.toHaveClass(/c-slideout-peek/);
+				await expect(headerToggler).toBeVisible();
+				await expect(headerToggler).toHaveAttribute(
+					'aria-expanded',
+					'true'
+				);
+
+				await expect(async () => {
+					expect((await pageBody.boundingBox())!.x).toBeGreaterThan(
+						pageBodyBox!.x
+					);
+				}).toPass({timeout: 5000});
+			});
+
+			await test.step('Only the header toggle shows while the menu is pinned', async () => {
+				await moveAwayFromMenu();
+
+				await expectOneToggle('unifiedSidebarHeaderToggler');
+
+				await expect(toggler).toBeHidden();
+				await expect(toggler).toHaveAttribute('aria-expanded', 'true');
+
+				// The pinned header toggle shows the active background, also on hover
+
+				// rgba(39, 40, 51, 0.08) as Chromium serializes a relative color
+
+				const pinnedStyle = {
+					backgroundColor: 'color(srgb 0.152941 0.156863 0.2 / 0.08)',
+					borderRadius: '8px',
+					color: 'rgb(107, 108, 126)',
+					height: '32px',
+					iconColor: 'rgb(107, 108, 126)',
+					width: '32px',
+				};
+
+				await expect(async () => {
+					expect(await getHeaderTogglerStyle()).toEqual(pinnedStyle);
+				}).toPass({timeout: 5000});
+
+				await headerToggler.hover();
+
+				await expect(async () => {
+					expect(await getHeaderTogglerStyle()).toEqual(pinnedStyle);
+				}).toPass({timeout: 5000});
+
+				await moveAwayFromMenu();
+
+				// The hidden toggle leaves no gap behind
+
+				await expect(async () => {
+					expect(
+						await toggler
+							.locator('xpath=ancestor::li')
+							.evaluate(
+								(element) =>
+									element.getBoundingClientRect().width
+							)
+					).toBe(0);
+				}).toPass({timeout: 5000});
+
+				// The page is served without the toggle placeholder
+
+				const html = await (await page.request.get(page.url())).text();
+
+				expect(html).not.toContain('product-menu-toast-toggle');
+			});
+
+			await test.step('Unpinning with the keyboard moves the focus to the Control Menu toggle', async () => {
+
+				// The mouse pinned the menu, so the header toggle has the focus
+
+				await expect(headerToggler).toBeFocused();
+
+				await page.keyboard.press('Enter');
+
+				await expect(menu).toBeHidden();
+				await expect(toggler).toHaveAttribute('aria-expanded', 'false');
+				await expect(toggler).toBeFocused();
+
+				await expectOneToggle('sideNavigationToggler');
+			});
+
+			await test.step('Pinning with the keyboard moves the focus to the header toggle', async () => {
+				await page.keyboard.press('Enter');
+
+				await expect(toggler).toHaveAttribute('aria-expanded', 'true');
+				await expect(menu).toBeVisible();
+				await expect(headerToggler).toBeFocused();
+
+				await expectOneToggle('unifiedSidebarHeaderToggler');
+
+				await expect(toggler).toBeHidden();
+			});
+
+			await test.step('The pinned menu stays pinned with one toggle after a reload', async () => {
+				await page.reload();
+
+				await waitForPageToBeLoaded(page);
+
+				await expect(menu).toBeVisible();
+
+				await expectOneToggle('unifiedSidebarHeaderToggler');
+
+				await expect(toggler).toBeHidden();
+			});
+		}
+		finally {
+
+			// Restore the pinned menu so later tests do not start hidden
+
+			await moveAwayFromMenu();
+
+			await openProductMenu(page);
+		}
 	}
 );

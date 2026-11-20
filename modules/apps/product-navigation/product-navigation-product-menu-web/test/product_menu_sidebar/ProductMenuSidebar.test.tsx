@@ -66,6 +66,7 @@ describe('ProductMenuSidebar', () => {
 	afterEach(() => {
 		delete (window as any).IntersectionObserver;
 		delete (window as any).matchMedia;
+		delete (document.body as any).clientWidth;
 
 		document.body.classList.remove(
 			'open',
@@ -158,6 +159,109 @@ describe('ProductMenuSidebar', () => {
 		expect(document.querySelector('.c-slideout-backdrop')).toBeNull();
 	});
 
+	it('reveals the closed sidebar on hover without pinning it', async () => {
+		overlay = false;
+
+		Object.defineProperty(document.body, 'clientWidth', {
+			configurable: true,
+			value: 1024,
+		});
+
+		document.body.classList.remove('open', 'product-menu-open');
+
+		render(
+			<>
+				<button aria-controls="com_liferay_product_navigation_product_menu_web_sidebar">
+					Toggle
+				</button>
+
+				<ProductMenuSidebar
+					canonicalName="siteAdministrationCanonicalName"
+					expandedKeys={['site_administration.content']}
+					expandedKeysSessionKey="expandedKeysSessionKey"
+					imageURL="imageURL"
+					items={ITEMS}
+					label="Liferay"
+					navigationItemsURL="navigationItemsURL"
+					selectedPortletId="blogs"
+					siteItemSelectedEventName="siteItemSelectedEventName"
+					siteItemSelectorURL="siteItemSelectorURL"
+					visible={false}
+					visibleSessionKey="visibleSessionKey"
+				/>
+			</>
+		);
+
+		await userEvent.hover(screen.getByText('Toggle'));
+
+		expect(screen.getByTestId('sideNavigation')).toHaveClass(
+			'c-slideout-peek'
+		);
+		expect(document.body).not.toHaveClass('open');
+		expect(document.body).not.toHaveClass('product-menu-open');
+		expect(Liferay.Util.Session.set).not.toHaveBeenCalled();
+	});
+
+	it('pins the revealed sidebar from its header', async () => {
+		Object.defineProperty(document.body, 'clientWidth', {
+			configurable: true,
+			value: 1024,
+		});
+
+		document.body.classList.remove('open', 'product-menu-open');
+
+		render(
+			<>
+				<button aria-controls="com_liferay_product_navigation_product_menu_web_sidebar">
+					Toggle
+				</button>
+
+				<ProductMenuSidebar
+					canonicalName="siteAdministrationCanonicalName"
+					expandedKeys={['site_administration.content']}
+					expandedKeysSessionKey="expandedKeysSessionKey"
+					imageURL="imageURL"
+					items={ITEMS}
+					label="Liferay"
+					navigationItemsURL="navigationItemsURL"
+					selectedPortletId="blogs"
+					siteItemSelectedEventName="siteItemSelectedEventName"
+					siteItemSelectorURL="siteItemSelectorURL"
+					visible={false}
+					visibleSessionKey="visibleSessionKey"
+				/>
+			</>
+		);
+
+		await userEvent.hover(screen.getByText('Toggle'));
+		await userEvent.click(screen.getByLabelText('pin-product-menu'));
+
+		await waitFor(() => expect(document.body).toHaveClass('open'));
+
+		expect(document.body).toHaveClass('product-menu-open');
+		expect(Liferay.Util.Session.set).toHaveBeenLastCalledWith(
+			'visibleSessionKey',
+			'open'
+		);
+	});
+
+	it('unpins the sidebar from its header toggle', async () => {
+		renderComponent();
+
+		await userEvent.click(
+			screen.getByTestId('unifiedSidebarHeaderToggler')
+		);
+
+		await waitFor(() =>
+			expect(document.body).not.toHaveClass('product-menu-open')
+		);
+
+		expect(Liferay.Util.Session.set).toHaveBeenLastCalledWith(
+			'visibleSessionKey',
+			'closed'
+		);
+	});
+
 	it('has no accessibility violations', async () => {
 		const {container} = renderComponent();
 
@@ -197,7 +301,7 @@ describe('ProductMenuSidebar', () => {
 			advanceTimers: jest.advanceTimersByTime,
 		});
 
-		await user.click(screen.getByLabelText('close-product-menu'));
+		await user.click(screen.getByTestId('unifiedSidebarHeaderToggler'));
 
 		await waitFor(() =>
 			expect(document.body).toHaveClass('sidenav-transition')

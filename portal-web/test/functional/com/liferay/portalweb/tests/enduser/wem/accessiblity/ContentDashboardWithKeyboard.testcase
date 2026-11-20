@@ -47,6 +47,12 @@ definition {
 		}
 
 		task ("When hover on the back button via keyboard") {
+
+			// A pinned menu takes the keyboard focus before the Control Menu,
+			// so hide it to make the back button the next stop after the toggle
+
+			ProductMenuHelper.closeProductMenu();
+
 			KeyPress(
 				locator1 = "ProductMenu#TOGGLE",
 				value1 = "\TAB");

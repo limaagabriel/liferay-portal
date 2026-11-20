@@ -32,7 +32,7 @@
 </tr>
 <tr>
 	<td>TOGGLE</td>
-	<td>//*[@data-qa-id='productMenu'] | //*[@data-qa-id='sideNavigationToggler']</td>
+	<td>//*[@data-qa-id='productMenu'] | //*[@data-qa-id='unifiedSidebarHeaderToggler'] | //*[@data-qa-id='sideNavigationToggler'][not(//*[@data-qa-id='unifiedSidebarHeaderToggler'])]</td>
 	<td></td>
 </tr>
 <tr>

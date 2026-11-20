@@ -21,8 +21,23 @@ export async function openProductMenu(page: Page) {
 			.getByLabel('Open Product Menu')
 			.or(page.getByTestId('sideNavigationToggler'));
 
+		const pinButton = page.getByLabel('Pin Product Menu');
+
 		await expect(async () => {
-			await button.click();
+
+			// Hovering the toggle reveals a hidden unified sidebar over it, so
+			// its pin button opens the sidebar instead
+
+			if (!(await pinButton.isVisible())) {
+				await button.hover({timeout: 2000});
+			}
+
+			if (await pinButton.isVisible()) {
+				await pinButton.click({timeout: 2000});
+			}
+			else {
+				await button.click({timeout: 2000});
+			}
 
 			await expect(productMenu).toHaveClass(/open|c-slideout-show/, {
 				timeout: 2000,
@@ -44,14 +59,24 @@ export async function closeProductMenu(page: Page) {
 		);
 
 	if (!(await isClosed())) {
+
+		// A pinned unified sidebar hides the Control Menu toggle, as its
+		// header holds the toggle then. Projects differ in the attribute
+		// that getByTestId reads, so the header toggle is found by its own.
+
 		const button = page
 			.getByRole('tab', {name: 'Close Product Menu'})
-			.or(page.getByTestId('sideNavigationToggler'));
+			.or(page.locator('[data-qa-id="unifiedSidebarHeaderToggler"]'))
+			.or(page.getByTestId('sideNavigationToggler'))
+			.or(page.locator('[data-qa-id="productMenu"]'))
+			.filter({visible: true});
 
 		await expect(async () => {
 			await button.click();
 
-			expect(await isClosed()).toBeTruthy();
+			// Give the menu time to close, as another click would reopen it
+
+			await expect.poll(isClosed, {timeout: 2000}).toBeTruthy();
 		}).toPass({
 			timeout: 5000,
 		});

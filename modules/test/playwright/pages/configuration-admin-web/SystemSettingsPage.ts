@@ -6,6 +6,7 @@
 import {Locator, Page, expect} from '@playwright/test';
 
 import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
+import {closeProductMenu} from '../../utils/productMenu';
 import {waitForAlert} from '../../utils/waitForAlert';
 import {waitForPageToBeLoaded} from '../../utils/waitForPageToBeLoaded';
 import {GlobalMenuPage} from '../product-navigation-applications-menu/GlobalMenuPage';
@@ -43,15 +44,7 @@ export class SystemSettingsPage {
 		await this.globalMenuPage.goToHome();
 		await this.globalMenuPage.goToControlPanel('System Settings');
 
-		if (
-			await this.page
-				.getByRole('tab', {name: 'Close Product Menu'})
-				.isVisible()
-		) {
-			await this.page
-				.getByRole('tab', {name: 'Close Product Menu'})
-				.click();
-		}
+		await closeProductMenu(this.page);
 
 		await this.page
 			.getByRole('link', {

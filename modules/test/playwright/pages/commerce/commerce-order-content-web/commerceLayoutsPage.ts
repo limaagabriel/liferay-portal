@@ -6,6 +6,7 @@
 import {FrameLocator, Locator, Page, expect} from '@playwright/test';
 
 import {liferayConfig} from '../../../liferay.config';
+import {openProductMenu} from '../../../utils/productMenu';
 
 export class CommerceLayoutsPage {
 	readonly accountSelectorButton: (name: string) => Locator;
@@ -159,10 +160,16 @@ export class CommerceLayoutsPage {
 		this.closeFrameButton = page
 			.getByRole('dialog')
 			.getByLabel('Close', {exact: true});
-		this.closeProductMenuButton = page.getByRole('tab', {
-			exact: true,
-			name: 'Close Product Menu',
-		});
+		this.closeProductMenuButton = page
+			.getByRole('tab', {
+				exact: true,
+				name: 'Close Product Menu',
+			})
+			.or(
+				page.locator(
+					'[data-qa-id="unifiedSidebarHeaderToggler"][aria-expanded="true"]'
+				)
+			);
 		this.configureMenuItem = page.getByRole('menuitem', {
 			exact: true,
 			name: 'Configure',
@@ -589,7 +596,7 @@ export class CommerceLayoutsPage {
 			await this.designMenuItem.click();
 		}
 		else if (await this.openProductMenuButton.isVisible()) {
-			await this.openProductMenuButton.click();
+			await openProductMenu(this.page);
 
 			const promise = new Promise(() => {
 				if (this.pageTemplatesMenuItem.isHidden()) {
@@ -648,7 +655,7 @@ export class CommerceLayoutsPage {
 				await this.siteBuilderMenuItem.click();
 			}
 			else if (await this.openProductMenuButton.isVisible()) {
-				await this.openProductMenuButton.click();
+				await openProductMenu(this.page);
 
 				if (await this.pagesMenuItem.isHidden()) {
 					await this.siteBuilderMenuItem.click();
