@@ -111,7 +111,7 @@ export default function UnifiedSidebar({
 					{peek ? (
 						<ClayButtonWithIcon
 							aria-label={Liferay.Language.get(
-								'open-product-menu'
+								'pin-product-menu'
 							)}
 							className="c-mr-1"
 							data-qa-id="unifiedSidebarPinButton"
@@ -120,7 +120,7 @@ export default function UnifiedSidebar({
 							onClick={() => onOpenChange?.(true)}
 							size="sm"
 							symbol="product-menu-closed"
-							title={Liferay.Language.get('open-product-menu')}
+							title={Liferay.Language.get('pin-product-menu')}
 						/>
 					) : (
 						<ClaySticker
