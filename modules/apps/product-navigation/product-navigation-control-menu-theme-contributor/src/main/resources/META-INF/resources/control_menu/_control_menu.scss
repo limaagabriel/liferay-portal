@@ -110,6 +110,13 @@ html#{$cadmin-selector} {
 				> .control-menu-nav > .control-menu-nav-item {
 					margin-left: 4px;
 					margin-right: 4px;
+
+					// The toggle sits where the one in the header of the
+					// sidebar does
+
+					&.sidebar-toggler-item {
+						margin-left: 0;
+					}
 				}
 			}
 
@@ -221,6 +228,15 @@ html#{$cadmin-selector} {
 
 		.control-menu-nav-item {
 			display: inline-flex;
+
+			// The header of a pinned sidebar holds its toggle, so the item
+			// has no toggle of its own to show and takes no room
+
+			&.sidebar-toggler-item:not(
+					:has(.control-menu-nav-link:not([hidden]))
+				) {
+				display: none;
+			}
 		}
 
 		.control-menu-nav-item-content:last-child:not(:first-child) {

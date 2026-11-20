@@ -104,30 +104,28 @@ public class ProductMenuProductNavigationControlMenuEntry
 				boolean open = Objects.equals(productMenuState, "open");
 
 				writer.write(
-					"<li class=\"control-menu-nav-item product-menu-toggle");
+					"<li class=\"control-menu-nav-item product-menu-toggle " +
+						"sidebar-toggler-item");
 
 				if (open) {
 					writer.write(" active");
 				}
 
-				writer.write(
-					StringBundler.concat(
-						"\"><div role=\"tablist\"><button class=\"btn ",
-						"btn-monospaced btn-sm control-menu-nav-link ",
-						"lfr-portal-tooltip product-menu-toast-toggle\">"));
+				writer.write("\"><div role=\"tablist\">");
 
-				if (open) {
-					writer.write(
-						openIconTag.doTagAsString(
-							httpServletRequest, httpServletResponse));
-				}
-				else {
-					writer.write(
-						closedIconTag.doTagAsString(
-							httpServletRequest, httpServletResponse));
-				}
+				// While the menu starts pinned, the toggler stays hidden, so
+				// there is no placeholder to show before it renders
 
-				writer.write("</button>");
+				if (!open) {
+					writer.write(
+						StringBundler.concat(
+							"<button class=\"btn btn-monospaced btn-sm ",
+							"control-menu-nav-link lfr-portal-tooltip ",
+							"product-menu-toast-toggle\">",
+							closedIconTag.doTagAsString(
+								httpServletRequest, httpServletResponse),
+							"</button>"));
+				}
 
 				_reactRenderer.renderReact(
 					new ComponentDescriptor(

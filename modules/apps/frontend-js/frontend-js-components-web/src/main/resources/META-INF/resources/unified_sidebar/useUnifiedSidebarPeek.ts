@@ -8,6 +8,8 @@ import {useEffect, useRef, useState} from 'react';
 
 const HIDE_DELAY = 250;
 
+type Point = {x: number; y: number};
+
 /**
  * Tells whether a closed sidebar is revealed as an overlay because the pointer
  * rests on its toggle or on the panel itself. It only reads the saved state
@@ -30,11 +32,13 @@ export function useUnifiedSidebarPeek({
 
 	const [revealed, setRevealed] = useState(false);
 
+	const dismissedPointRef = useRef<Point | null>(null);
 	const dismissedRef = useRef(false);
 	const focusInsideRef = useRef(false);
 	const hideTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 	const openRef = useRef(open);
 	const pointerInsideRef = useRef(false);
+	const pointerPointRef = useRef<Point | null>(null);
 
 	const enabled = !!navigationId && !isMobile;
 
@@ -52,6 +56,15 @@ export function useUnifiedSidebarPeek({
 			// until the pointer leaves and comes back.
 
 			dismissedRef.current = pointerInsideRef.current;
+
+			// Closing can move the layout under a resting pointer, as when the
+			// toggle in the header of the panel gives way to the one outside
+			// it. The browser reports that as the pointer leaving, so only a
+			// pointer that really moves ends the dismissal.
+
+			dismissedPointRef.current = pointerInsideRef.current
+				? pointerPointRef.current
+				: null;
 		},
 		[open]
 	);
@@ -109,8 +122,40 @@ export function useUnifiedSidebarPeek({
 				}
 			}
 
+			function isLayoutShift(event: PointerEvent) {
+				const dismissedPoint = dismissedPointRef.current;
+
+				if (!dismissedPoint) {
+					return false;
+				}
+
+				if (
+					event.clientX === dismissedPoint.x &&
+					event.clientY === dismissedPoint.y
+				) {
+					return true;
+				}
+
+				dismissedPointRef.current = null;
+
+				return false;
+			}
+
+			function handlePointerMove(event: PointerEvent) {
+				if (
+					event.pointerType === 'mouse' &&
+					typeof event.clientX === 'number' &&
+					typeof event.clientY === 'number'
+				) {
+					pointerPointRef.current = {
+						x: event.clientX,
+						y: event.clientY,
+					};
+				}
+			}
+
 			function handlePointerOver(event: PointerEvent) {
-				if (event.pointerType !== 'mouse') {
+				if (event.pointerType !== 'mouse' || isLayoutShift(event)) {
 					return;
 				}
 
@@ -119,10 +164,16 @@ export function useUnifiedSidebarPeek({
 
 					update();
 				}
+				else if (pointerInsideRef.current) {
+					pointerInsideRef.current = false;
+					dismissedRef.current = false;
+
+					update();
+				}
 			}
 
 			function handlePointerOut(event: PointerEvent) {
-				if (event.pointerType !== 'mouse') {
+				if (event.pointerType !== 'mouse' || isLayoutShift(event)) {
 					return;
 				}
 
@@ -153,12 +204,14 @@ export function useUnifiedSidebarPeek({
 
 			document.addEventListener('focusin', handleFocusIn);
 			document.addEventListener('focusout', handleFocusOut);
+			document.addEventListener('pointermove', handlePointerMove);
 			document.addEventListener('pointerout', handlePointerOut);
 			document.addEventListener('pointerover', handlePointerOver);
 
 			return () => {
 				document.removeEventListener('focusin', handleFocusIn);
 				document.removeEventListener('focusout', handleFocusOut);
+				document.removeEventListener('pointermove', handlePointerMove);
 				document.removeEventListener('pointerout', handlePointerOut);
 				document.removeEventListener('pointerover', handlePointerOver);
 
