@@ -10,6 +10,7 @@ import {sub} from 'frontend-js-web';
 import React, {useRef} from 'react';
 
 import UnifiedSidebarColorSchemeButton from './UnifiedSidebarColorSchemeButton';
+import {useUnifiedSidebarPeek} from './useUnifiedSidebarPeek';
 
 import './UnifiedSidebar.scss';
 
@@ -59,7 +60,11 @@ export default function UnifiedSidebar({
 }: UnifiedSidebarProps) {
 	const internalContainerRef = useRef<HTMLElement>(null);
 
+	const panelRef = useRef<HTMLDivElement>(null);
+
 	const containerRef = externalContainerRef ?? internalContainerRef;
+
+	const peek = useUnifiedSidebarPeek({navigationId, open, panelRef});
 
 	const closeButtonProps = Liferay.FeatureFlags['LPD-57922']
 		? {
@@ -87,10 +92,12 @@ export default function UnifiedSidebar({
 			data-testid={testId}
 			direction="left"
 			displayType="light"
+			externalSidePanelRef={panelRef}
 			fullHeight
 			id={navigationId}
 			onOpenChange={onOpenChange}
 			open={open}
+			peek={peek}
 			position="fixed"
 		>
 			<SidePanel.Header

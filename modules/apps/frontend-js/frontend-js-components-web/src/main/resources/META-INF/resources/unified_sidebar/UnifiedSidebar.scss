@@ -34,6 +34,10 @@ html#{$cadmin-selector} {
 		box-shadow: none;
 		overflow: hidden;
 
+		&.c-slideout-peek {
+			box-shadow: $cadmin-box-shadow-lg;
+		}
+
 		.menubar-primary .nav-link {
 			padding-bottom: 0.5rem;
 			padding-top: 0.5rem;
