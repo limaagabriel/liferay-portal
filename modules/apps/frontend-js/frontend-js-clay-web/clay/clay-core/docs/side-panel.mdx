@@ -180,6 +180,14 @@ A fixed SidePanel starts below its container and stacks below fixed or sticky na
 <SidePanel fullHeight position="fixed" />
 ```
 
+## Peek
+
+Set the `peek` property to reveal a closed SidePanel as an overlay, for example while the user hovers over it. The SidePanel stays interactive and does not push its container. It adds the `c-slideout-peek` class and slides in by a short distance while fading in, and does the opposite when `peek` is removed. The motion is off when the user prefers reduced motion. The `open` property wins: while the SidePanel is open, `peek` has no effect.
+
+```jsx
+<SidePanel peek position="fixed" />
+```
+
 ## Fluid Width
 
 The SidePanel is designed to adapt fluidly to the screen size, with its width automatically set as a percentage of the container. It does not rely on a fixed width and integrates seamlessly across different resolutions.
