@@ -184,6 +184,34 @@ html#{$cadmin-selector} {
 		}
 	}
 
+	// The toggle keeps one icon colour in every state; the background
+	// shows the state: light on hover, dark while the sidebar is pinned.
+
+	.unified-sidebar-header-toggler.btn {
+		background-color: transparent;
+		border-radius: $cadmin-border-radius;
+		color: $cadmin-secondary;
+		height: 32px;
+		padding: 0;
+		width: 32px;
+
+		&:active,
+		&:focus,
+		&:hover {
+			color: $cadmin-secondary;
+		}
+
+		&:hover {
+			background-color: $cadmin-light;
+		}
+
+		&[aria-expanded='true'],
+		&[aria-expanded='true']:active,
+		&[aria-expanded='true']:hover {
+			background-color: rgb(from #{$cadmin-dark} r g b / 0.08);
+		}
+	}
+
 	.unified-sidebar-header-toggler {
 		.unified-sidebar-header-toggler-logo {
 			height: 20px;
