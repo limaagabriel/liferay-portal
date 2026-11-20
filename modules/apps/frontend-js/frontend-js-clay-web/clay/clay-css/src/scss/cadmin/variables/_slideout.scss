@@ -385,3 +385,43 @@ $cadmin-c-slideout-height-full: map-deep-merge(
 	),
 	$cadmin-c-slideout-height-full
 );
+
+// C Slideout Peek
+
+$cadmin-c-slideout-peek-duration: 140ms !default;
+
+$cadmin-c-slideout-peek-offset: 24px !default;
+
+$cadmin-c-slideout-peek: () !default;
+$cadmin-c-slideout-peek: map-deep-merge(
+	(
+		animation: cadmin-c-slideout-peek-in $cadmin-c-slideout-peek-duration
+			ease-out,
+		display: flex,
+		flex-direction: column,
+
+		'&.c-slideout-peek-out': (
+			animation: cadmin-c-slideout-peek-out
+				$cadmin-c-slideout-peek-duration ease-out forwards,
+		),
+	),
+	$cadmin-c-slideout-peek
+);
+
+$cadmin-c-slideout-peek-start: () !default;
+$cadmin-c-slideout-peek-start: map-merge(
+	(
+		--c-slideout-peek-offset: calc(#{$cadmin-c-slideout-peek-offset} * -1),
+		left: 0px,
+	),
+	$cadmin-c-slideout-peek-start
+);
+
+$cadmin-c-slideout-peek-end: () !default;
+$cadmin-c-slideout-peek-end: map-merge(
+	(
+		--c-slideout-peek-offset: #{$cadmin-c-slideout-peek-offset},
+		right: 0px,
+	),
+	$cadmin-c-slideout-peek-end
+);

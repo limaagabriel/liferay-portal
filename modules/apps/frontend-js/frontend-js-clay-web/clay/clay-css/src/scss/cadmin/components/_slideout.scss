@@ -50,3 +50,43 @@
 .c-slideout-height-full {
 	@include clay-slideout-variant($cadmin-c-slideout-height-full);
 }
+
+@keyframes cadmin-c-slideout-peek-in {
+	from {
+		opacity: 0;
+		transform: translateX(var(--c-slideout-peek-offset));
+	}
+
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes cadmin-c-slideout-peek-out {
+	from {
+		opacity: 1;
+		transform: translateX(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateX(var(--c-slideout-peek-offset));
+	}
+}
+
+.c-slideout:has(> .sidebar.c-slideout-peek) {
+	overflow: visible;
+}
+
+.c-slideout .sidebar.c-slideout-peek {
+	@include clay-map-to-css($cadmin-c-slideout-peek);
+}
+
+.c-slideout-start .sidebar.c-slideout-peek {
+	@include clay-css($cadmin-c-slideout-peek-start);
+}
+
+.c-slideout-end .sidebar.c-slideout-peek {
+	@include clay-css($cadmin-c-slideout-peek-end);
+}

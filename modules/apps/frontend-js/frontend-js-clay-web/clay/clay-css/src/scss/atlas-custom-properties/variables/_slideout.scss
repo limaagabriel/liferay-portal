@@ -381,3 +381,42 @@ $c-slideout-height-full: map-deep-merge(
 	),
 	$c-slideout-height-full
 );
+
+// C Slideout Peek
+
+$c-slideout-peek-duration: 140ms !default;
+
+$c-slideout-peek-offset: 24px !default;
+
+$c-slideout-peek: () !default;
+$c-slideout-peek: map-deep-merge(
+	(
+		animation: c-slideout-peek-in $c-slideout-peek-duration ease-out,
+		display: flex,
+		flex-direction: column,
+
+		'&.c-slideout-peek-out': (
+			animation: c-slideout-peek-out $c-slideout-peek-duration ease-out
+				forwards,
+		),
+	),
+	$c-slideout-peek
+);
+
+$c-slideout-peek-start: () !default;
+$c-slideout-peek-start: map-merge(
+	(
+		--c-slideout-peek-offset: calc(#{$c-slideout-peek-offset} * -1),
+		left: 0px,
+	),
+	$c-slideout-peek-start
+);
+
+$c-slideout-peek-end: () !default;
+$c-slideout-peek-end: map-merge(
+	(
+		--c-slideout-peek-offset: #{$c-slideout-peek-offset},
+		right: 0px,
+	),
+	$c-slideout-peek-end
+);
