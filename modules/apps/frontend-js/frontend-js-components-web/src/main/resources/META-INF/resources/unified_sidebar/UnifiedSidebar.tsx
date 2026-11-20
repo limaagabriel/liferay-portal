@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {ClayButtonWithIcon} from '@clayui/button';
+import ClayButton from '@clayui/button';
 import {SidePanel} from '@clayui/core';
+import ClayIcon from '@clayui/icon';
 import {IPortalBaseProps} from '@clayui/shared';
-import ClaySticker from '@clayui/sticker';
 import {sub} from 'frontend-js-web';
 import React, {useRef} from 'react';
 
@@ -80,6 +80,10 @@ export default function UnifiedSidebar({
 		...headerMessages,
 	};
 
+	const togglerLabel = open
+		? Liferay.Language.get('close-product-menu')
+		: Liferay.Language.get('pin-product-menu');
+
 	return (
 		<SidePanel
 			aria-label={sub(Liferay.Language.get('x-menu'), label)}
@@ -108,33 +112,34 @@ export default function UnifiedSidebar({
 				messages={mergedHeaderMessages}
 			>
 				<SidePanel.Title className="align-items-center c-my-0 d-flex">
-					{peek ? (
-						<ClayButtonWithIcon
-							aria-label={Liferay.Language.get(
-								'pin-product-menu'
-							)}
-							className="c-mr-1"
-							data-qa-id="unifiedSidebarPinButton"
+					{(peek || open) && (
+						<ClayButton
+							aria-expanded={open}
+							aria-label={togglerLabel}
+							className="c-mr-1 unified-sidebar-header-toggler"
+							data-qa-id="unifiedSidebarHeaderToggler"
 							displayType="unstyled"
 							monospaced
-							onClick={() => onOpenChange?.(true)}
+							onClick={() => onOpenChange?.(!open)}
 							size="sm"
-							symbol="product-menu-closed"
-							title={Liferay.Language.get('pin-product-menu')}
-						/>
-					) : (
-						<ClaySticker
-							borderless
-							className="c-mr-1"
-							data-qa-id="unifiedSidebarProductIcon"
-							displayType="outline"
+							title={togglerLabel}
 						>
-							<img
-								alt=""
-								className="c-mx-1"
-								src={categoryImageUrl}
+							{peek && (
+								<img
+									alt=""
+									className="unified-sidebar-header-toggler-logo"
+									src={categoryImageUrl}
+								/>
+							)}
+
+							<ClayIcon
+								symbol={
+									open
+										? 'product-menu-open'
+										: 'product-menu-closed'
+								}
 							/>
-						</ClaySticker>
+						</ClayButton>
 					)}
 
 					<span
