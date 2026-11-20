@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {ClayButtonWithIcon} from '@clayui/button';
 import {SidePanel} from '@clayui/core';
 import {IPortalBaseProps} from '@clayui/shared';
 import ClaySticker from '@clayui/sticker';
@@ -107,14 +108,34 @@ export default function UnifiedSidebar({
 				messages={mergedHeaderMessages}
 			>
 				<SidePanel.Title className="align-items-center c-my-0 d-flex">
-					<ClaySticker
-						borderless
-						className="c-mr-1"
-						data-qa-id="unifiedSidebarProductIcon"
-						displayType="outline"
-					>
-						<img alt="" className="c-mx-1" src={categoryImageUrl} />
-					</ClaySticker>
+					{peek ? (
+						<ClayButtonWithIcon
+							aria-label={Liferay.Language.get(
+								'open-product-menu'
+							)}
+							className="c-mr-1"
+							data-qa-id="unifiedSidebarPinButton"
+							displayType="unstyled"
+							monospaced
+							onClick={() => onOpenChange?.(true)}
+							size="sm"
+							symbol="product-menu-closed"
+							title={Liferay.Language.get('open-product-menu')}
+						/>
+					) : (
+						<ClaySticker
+							borderless
+							className="c-mr-1"
+							data-qa-id="unifiedSidebarProductIcon"
+							displayType="outline"
+						>
+							<img
+								alt=""
+								className="c-mx-1"
+								src={categoryImageUrl}
+							/>
+						</ClaySticker>
+					)}
 
 					<span
 						className="c-ml-2 text-5 text-truncate"
