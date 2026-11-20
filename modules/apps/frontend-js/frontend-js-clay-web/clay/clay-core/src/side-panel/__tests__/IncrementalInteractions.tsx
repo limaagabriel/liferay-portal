@@ -29,20 +29,24 @@ function Example({
 	closeOnEscape,
 	defaultOpen = false,
 	fullHeight = false,
+	peek = false,
 	position,
+	reducedMotion = 'never',
 }: {
 	backdrop?: boolean;
 	closeOnEscape?: boolean;
 	defaultOpen?: boolean;
 	fullHeight?: boolean;
+	peek?: boolean;
 	position?: 'absolute' | 'fixed';
+	reducedMotion?: 'always' | 'never';
 }) {
 	const [open, setOpen] = useState(defaultOpen);
 
 	const ref = useRef(null);
 
 	return (
-		<Provider spritemap="icons.svg">
+		<Provider reducedMotion={reducedMotion} spritemap="icons.svg">
 			<Button
 				aria-controls="sidepanel"
 				aria-pressed={open}
@@ -61,6 +65,7 @@ function Example({
 					id="sidepanel"
 					onOpenChange={setOpen}
 					open={open}
+					peek={peek}
 					position={position}
 				>
 					<SidePanel.Header
@@ -216,5 +221,113 @@ describe('SidePanel incremental interactions', () => {
 
 		expect(slideout).toHaveClass('c-slideout-height-full');
 		expect(slideout).toHaveStyle({top: '0px'});
+	});
+
+	describe('peek', () => {
+		it('reveals a closed side panel without pushing the container', () => {
+			const {getByRole} = render(<Example peek />);
+
+			const panel = getByRole('complementary');
+
+			expect(panel).toHaveClass('c-slideout-peek');
+			expect(panel).not.toHaveAttribute('inert');
+			expect(panel.closest('.c-slideout')!.parentElement).not.toHaveClass(
+				'c-slideout-push-end'
+			);
+		});
+
+		it('keeps the side panel revealed while leaving and then hides it', async () => {
+			const {getByRole, rerender} = render(<Example peek />);
+
+			const panel = getByRole('complementary');
+
+			rerender(<Example peek={false} />);
+
+			expect(panel).toHaveClass('c-slideout-peek');
+			expect(panel).toHaveClass('c-slideout-peek-out');
+			expect(panel).not.toHaveAttribute('inert');
+
+			await waitFor(() => {
+				expect(panel).not.toHaveClass('c-slideout-peek');
+				expect(panel).not.toHaveClass('c-slideout-peek-out');
+				expect(panel).toHaveAttribute('inert');
+			});
+		});
+
+		it('hides the side panel when peek returns while leaving', async () => {
+			const {getByRole, rerender} = render(<Example peek />);
+
+			const panel = getByRole('complementary');
+
+			rerender(<Example peek={false} />);
+			rerender(<Example peek />);
+
+			expect(panel).toHaveClass('c-slideout-peek');
+
+			rerender(<Example peek={false} />);
+
+			await waitFor(() => {
+				expect(panel).not.toHaveClass('c-slideout-peek');
+				expect(panel).toHaveAttribute('inert');
+			});
+		});
+
+		it('hides the side panel right away with reduced motion', async () => {
+			const {getByRole, rerender} = render(
+				<Example peek reducedMotion="always" />
+			);
+
+			const panel = getByRole('complementary');
+
+			await waitFor(() => {
+				expect(panel).toHaveClass('c-slideout-peek');
+			});
+
+			rerender(<Example peek={false} reducedMotion="always" />);
+
+			// A fixed 140ms linger would still show the panel here, since
+			// `waitFor` polls every 50ms.
+
+			await waitFor(
+				() => {
+					expect(panel).not.toHaveClass('c-slideout-peek');
+					expect(panel).toHaveAttribute('inert');
+				},
+				{timeout: 100}
+			);
+		});
+
+		it('is ignored while the side panel is open', async () => {
+			const {getByRole} = render(<Example defaultOpen peek />);
+
+			const panel = getByRole('complementary');
+
+			expect(panel).toHaveClass('c-slideout-show');
+			expect(panel).not.toHaveClass('c-slideout-peek');
+			expect(panel).not.toHaveAttribute('inert');
+			expect(panel.closest('.c-slideout')!.parentElement).toHaveClass(
+				'c-slideout-push-end'
+			);
+		});
+
+		it('drops the peek class when the side panel opens', async () => {
+			const {getAllByRole, getByRole} = render(<Example peek />);
+
+			const [button] = getAllByRole('button');
+			const panel = getByRole('complementary');
+
+			userEvent.click(button!);
+
+			await waitFor(() => {
+				expect(panel).toHaveClass('c-slideout-show');
+				expect(panel).not.toHaveClass('c-slideout-peek');
+				expect(panel).not.toHaveClass('c-slideout-peek-out');
+				expect(panel).not.toHaveAttribute('inert');
+			});
+
+			expect(panel.closest('.c-slideout')!.parentElement).toHaveClass(
+				'c-slideout-push-end'
+			);
+		});
 	});
 });
